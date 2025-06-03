@@ -1,0 +1,5 @@
+com\jskool\ruleengine\config\DroolsConfig.class
+com\jskool\ruleengine\RuleengineApplication.class
+com\jskool\ruleengine\model\CustomerType.class
+com\jskool\ruleengine\model\OrderRequest.class
+com\jskool\ruleengine\model\OrderDiscount.class
