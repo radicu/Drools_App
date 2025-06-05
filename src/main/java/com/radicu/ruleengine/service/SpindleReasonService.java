@@ -3,6 +3,7 @@ package com.radicu.ruleengine.service;
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import com.radicu.ruleengine.model.DrillRule;
@@ -30,7 +31,9 @@ import org.slf4j.LoggerFactory;
 @Service
 public class SpindleReasonService {
 
-    private final KieContainer kieContainer;
+
+
+    private final KieContainer spindleKieContainer;
 
     private static final String RULES_PATH = "rules/spindle_rules.drl";
     
@@ -40,31 +43,25 @@ public class SpindleReasonService {
     private static final Logger logger = LoggerFactory.getLogger(SpindleReasonService.class);
 
     @Autowired
-    public SpindleReasonService(KieContainer kieContainer) {
-        this.kieContainer = kieContainer;
+    public SpindleReasonService(@Qualifier("spindleKieContainer") KieContainer spindleKieContainer) {
+        this.spindleKieContainer = spindleKieContainer;
     }
 
     public Spindle evaluateRules(Spindle spindle) {
-        // Create NEW session for each request
-        KieSession kieSession = kieContainer.newKieSession();
+        KieSession kieSession = spindleKieContainer.newKieSession();
         try {
             kieSession.insert(spindle);
-            
-            // 🕒 Start timing
             long startTime = System.nanoTime();
-            
             kieSession.fireAllRules();
-            
-            // 🕒 End timing
             long endTime = System.nanoTime();
-            long elapsedMillis = (endTime - startTime) / 1_000_000; // Convert to ms
-            
+            long elapsedMillis = (endTime - startTime) / 1_000_000;
+
             System.out.println("Reasoning time: {" + elapsedMillis + "}ms");
 
         } finally {
-            kieSession.dispose();  
+            kieSession.dispose();
         }
-        return spindle; 
+        return spindle;
     }
 
     public List<DrillRule> getAllRules() throws IOException {

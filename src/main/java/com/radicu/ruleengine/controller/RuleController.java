@@ -14,8 +14,10 @@ import org.springframework.util.StreamUtils;
 
 import com.radicu.ruleengine.model.DrillRule;
 import com.radicu.ruleengine.model.Spindle;
+import com.radicu.ruleengine.model.SpindleData;
+import com.radicu.ruleengine.service.RuleEngineServiceEC;
 import com.radicu.ruleengine.service.SpindleReasonService;
-import com.radicu.ruleengine.service.TtlToDroolsConverterService;
+import com.radicu.ruleengine.service.UniversalRuleExtractorService;
 
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -34,24 +36,27 @@ import java.util.Map;
 public class RuleController {
 
     private final SpindleReasonService ruleEngineService;
-    private final TtlToDroolsConverterService ttlToDroolsConverterService;
+    private final RuleEngineServiceEC ruleEngineServiceEC;
+    private final UniversalRuleExtractorService universalRuleExtractorService;
 
     // Log for debugging
     private static final Logger logger = LoggerFactory.getLogger(RuleController.class);
 
     // Constructor Injection for both services
-    public RuleController(SpindleReasonService ruleEngineService, TtlToDroolsConverterService ttlToDroolsConverterService) {
+    public RuleController(SpindleReasonService ruleEngineService, UniversalRuleExtractorService universalRuleExtractorService
+    ,RuleEngineServiceEC ruleEngineServiceEC ) {
         this.ruleEngineService = ruleEngineService;
-        this.ttlToDroolsConverterService = ttlToDroolsConverterService;
+        this.universalRuleExtractorService = universalRuleExtractorService;
+        this.ruleEngineServiceEC = ruleEngineServiceEC;
     }
     @PostMapping(value = "/evaluate", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Spindle evaluateSpindleRules(@RequestBody Spindle spindle) {
+        public Spindle evaluateSpindleRules(@RequestBody Spindle spindle) {
         return ruleEngineService.evaluateRules(spindle);
     }
 
     // Inside the class:
     @GetMapping("/download-rule")
-    public ResponseEntity<List<DrillRule>> downloadRules() {
+        public ResponseEntity<List<DrillRule>> downloadRules() {
         try {
             List<DrillRule> rules = ruleEngineService.getAllRules();
             logger.info("Successfully loaded {} rules", rules.size());
@@ -63,7 +68,7 @@ public class RuleController {
     }
 
    @PostMapping("/update-rule")
-    public ResponseEntity<String> updateRules(@RequestBody List<Map<String, Object>> rulesPayload) {
+        public ResponseEntity<String> updateRules(@RequestBody List<Map<String, Object>> rulesPayload) {
         try {
             // Parse JSON to DRL
             String drlContent = ruleEngineService.parseRulesToDRL(rulesPayload);
@@ -79,28 +84,29 @@ public class RuleController {
     }
 
     //Endpoint to convert ttl-to-drl (for rule only, for now)
-    @PostMapping("/api/converter/ttl-to-drl")
-        public ResponseEntity<InputStreamResource> convertTtlToDrl(@RequestParam("file") MultipartFile file) throws IOException {
-            logger.info("Received .ttl file for conversion: {}", file.getOriginalFilename());
+    @PostMapping("/api/converter/file-to-drl")
+        public ResponseEntity<byte[]> convertFileToDrl(@RequestParam("file") MultipartFile file) throws IOException {
+            // Save uploaded file temporarily
+            File tempFile = File.createTempFile("uploaded-", file.getOriginalFilename());
+            file.transferTo(tempFile);
 
-            // Save MultipartFile to a temporary file
-            File tempFile = File.createTempFile("uploaded", ".ttl");
-            try (OutputStream os = new FileOutputStream(tempFile)) {
-                file.getInputStream().transferTo(os);
-            }
+            // Extract DRL
+            String drlContent = universalRuleExtractorService.convertRdfToDrl(tempFile.getAbsolutePath());
 
-            // Call the converter service
-            String drlContent = ttlToDroolsConverterService.convertTtlToDrl(tempFile.getAbsolutePath());
+            // Clean up temp file
+            tempFile.delete();
 
-            // Prepare .drl file as response
-            ByteArrayInputStream drlStream = new ByteArrayInputStream(drlContent.getBytes());
-
-            InputStreamResource resource = new InputStreamResource(drlStream);
-
+            // Prepare response
+            byte[] drlBytes = drlContent.getBytes();
             return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"rules.drl\"")
-                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                    .body(resource);
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"converted_rules.drl\"")
+                    .contentType(MediaType.TEXT_PLAIN)
+                    .body(drlBytes);
+        }
+
+    @PostMapping("/run")
+        public SpindleData runRules(@RequestBody SpindleData spindleData) {
+            return ruleEngineServiceEC.runRules(spindleData);
         }
 
     
