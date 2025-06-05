@@ -24,6 +24,8 @@ when
     $fact : SpindleData(state == 'Check High', drillingCondition2 < alarmLimit4200, drillingCondition3 < alarmLimit5100)
 then
     $fact.setState("False Alarm");
+    $fact.setState("Replace bits");
+    $fact.setState("Back to Start");
 end
 
 rule "R003"
