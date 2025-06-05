@@ -83,7 +83,7 @@ public class UniversalRuleExtractorService {
 
     private String convertToDrlRule(String ruleName, int priority, String conditionLiteral, String decisionLiteral) {
         List<String> conditions = extractConditions(conditionLiteral);
-        List<String> actions = extractActions(decisionLiteral);
+        List<String> actions = extractActions(decisionLiteral); // 🚩 Now multiple actions
 
         if (conditions.isEmpty() && actions.isEmpty()) {
             System.out.println("⚠️ Skipping rule: " + ruleName + " due to no conditions and no actions.");
@@ -102,15 +102,19 @@ public class UniversalRuleExtractorService {
         }
 
         drl.append("then\n");
+
         if (!actions.isEmpty()) {
             for (String action : actions) {
-                drl.append("    ").append(action).append(";\n");
+                drl.append("    ").append(action).append("\n");  // 🚩 Each action, one per line
             }
         }
+
         drl.append("end");
 
         return drl.toString();
     }
+
+
 
     private List<String> extractConditions(String conditionLiteral) {
         List<String> conditions = new ArrayList<>();
@@ -129,29 +133,36 @@ public class UniversalRuleExtractorService {
                 String cond = part.trim();
                 if (cond.isEmpty()) continue;
 
-                // 🚩 NEW: Smartly detect comparison vs. bare field
-                Pattern pattern = Pattern.compile("^([a-zA-Z0-9_]+)\\s*([><=!]+)\\s*(.+)$"); // match 'left op right'
+                // 🚩 NEW: Smart detect comparison vs bare field
+                Pattern pattern = Pattern.compile("^([a-zA-Z0-9_]+)\\s*([><=!]+)\\s*(.+)$"); // left operator right
                 Matcher matcher = pattern.matcher(cond);
 
                 if (matcher.find()) {
-                    // Comparison condition (e.g., field > value or field > field)
+                    // Comparison condition
                     String leftField = matcher.group(1).trim();
                     String operator = matcher.group(2).trim();
                     String rightValue = matcher.group(3).trim();
 
                     String normalizedLeft = normalizeFieldName(leftField);
-                    String normalizedRight = normalizeFieldName(rightValue.replaceAll("\\?", "")); // clean ? in right side
+                    String normalizedRight = normalizeFieldName(rightValue.replaceAll("\\?", ""));
 
                     boolean validLeft = validFields.contains(normalizedLeft);
-                    boolean validRight = isNumeric(rightValue) || validFields.contains(normalizedRight);
+                    boolean validRight = isNumeric(rightValue) || validFields.contains(normalizedRight) ||
+                            (rightValue.startsWith("'") && rightValue.endsWith("'")) ||
+                            (rightValue.startsWith("\"") && rightValue.endsWith("\""));
 
                     if (validLeft && validRight) {
                         String updatedCond = normalizedLeft + " " + operator + " ";
 
-                        if (isNumeric(rightValue) || rightValue.startsWith("\"") || rightValue.startsWith("'")) {
-                            updatedCond += rightValue; // number or string
+                        if (isNumeric(rightValue)) {
+                            updatedCond += rightValue;
+                        } else if ((rightValue.startsWith("'") && rightValue.endsWith("'")) ||
+                                (rightValue.startsWith("\"") && rightValue.endsWith("\""))) {
+                            // String literal case: remove outer quotes and wrap with double quotes
+                            String cleanString = rightValue.substring(1, rightValue.length() - 1);
+                            updatedCond += "\"" + cleanString + "\"";
                         } else {
-                            updatedCond += normalizedRight; // another field
+                            updatedCond += normalizedRight;
                         }
 
                         if (!first) {
@@ -161,7 +172,7 @@ public class UniversalRuleExtractorService {
                         first = false;
                     }
                 } else {
-                    // 🚩 Bare field case (e.g., AlarmLimit3200) → float > 0.0
+                    // 🚩 Bare field condition (float, assume > 0.0 check)
                     String fieldName = cond;
                     String normalizedField = normalizeFieldName(fieldName);
 
@@ -193,20 +204,35 @@ public class UniversalRuleExtractorService {
 
 
 
-
     private List<String> extractActions(String decisionLiteral) {
         List<String> actions = new ArrayList<>();
 
-        if (decisionLiteral != null && !decisionLiteral.isEmpty()) {
-            String[] parts = decisionLiteral.split("=");
+        if (decisionLiteral == null || decisionLiteral.isEmpty()) {
+            return actions;
+        }
 
-            if (parts.length == 2) {
-                String field = parts[0].trim().replaceAll("\\?", "");
-                String normalizedField = normalizeFieldName(field);
+        // Split by ; → multiple decisions
+        String[] decisions = decisionLiteral.split(";");
 
-                if (validFields.contains(normalizedField)) {
-                    String value = parts[1].trim().replaceAll("'", "\"");
-                    actions.add("$fact.set" + capitalize(normalizedField) + "(" + value + ")");
+        for (String decision : decisions) {
+            decision = decision.trim();
+            if (decision.isEmpty()) continue;
+
+            if (decision.contains("=")) {
+                String[] parts = decision.split("=");
+
+                if (parts.length == 2) {
+                    String fieldName = parts[0].replace("?", "").trim();
+                    String value = parts[1].trim();
+
+                    if ((value.startsWith("'") && value.endsWith("'")) || (value.startsWith("\"") && value.endsWith("\""))) {
+                        value = value.substring(1, value.length() - 1); // remove outer quotes
+                        value = "\"" + value + "\""; // make double quotes
+                    }
+
+                    String normalizedField = normalizeFieldName(fieldName);
+
+                    actions.add("$fact.set" + capitalize(normalizedField) + "(" + value + ");");
                 }
             }
         }
@@ -214,10 +240,16 @@ public class UniversalRuleExtractorService {
         return actions;
     }
 
+
+
+
     private String normalizeFieldName(String fieldName) {
-        if (fieldName == null || fieldName.isEmpty()) return fieldName;
-    return fieldName.substring(0, 1).toLowerCase() + fieldName.substring(1);
-    }   
+    if (fieldName == null || fieldName.isEmpty()) return fieldName;
+
+        // Lowercase first character, preserve numbers
+        return fieldName.substring(0, 1).toLowerCase() + fieldName.substring(1);
+    }
+
 
 
 
