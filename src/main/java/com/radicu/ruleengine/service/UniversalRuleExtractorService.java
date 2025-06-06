@@ -6,9 +6,11 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.util.FileManager;
 import org.springframework.stereotype.Service;
 
-
-
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
@@ -17,6 +19,8 @@ import java.util.regex.Matcher;
 public class UniversalRuleExtractorService {
 
     // private static final String NAMESPACE = "http://mts.com/";
+
+    private static final String RULES_PATH2= "src/main/resources/rules/converted_rules.drl";
 
     // ✅ Fields matching your Java model (camelCase)
     private static final Set<String> validFields = new HashSet<>(Arrays.asList(
@@ -34,15 +38,15 @@ public class UniversalRuleExtractorService {
     ));
 
 
-    public String convertRdfToDrl(String filePath) {
+    public String convertRdfToDrl(String filePath) throws IOException {
         InputStream in = FileManager.get().open(filePath);
         if (in == null) {
             throw new IllegalArgumentException("File not found at path: " + filePath);
-            }
+        }
 
         Model model = ModelFactory.createDefaultModel();
-        String format = detectFormat(filePath); // ✅
-        model.read(in, null, format);           // ✅ // ✅
+        String format = detectFormat(filePath); // Detect format TTL/RDF/XML
+        model.read(in, null, format);
 
         StringBuilder drl = new StringBuilder();
         drl.append("package rules;\n\n");
@@ -78,8 +82,12 @@ public class UniversalRuleExtractorService {
             }
         }
 
+        // ✅ Save to file right before returning
+        updateRuleFile(drl.toString());
+
         return drl.toString();
     }
+
 
     private String convertToDrlRule(String ruleName, int priority, String conditionLiteral, String decisionLiteral) {
         List<String> conditions = extractConditions(conditionLiteral);
@@ -283,5 +291,15 @@ public class UniversalRuleExtractorService {
         } else {
             throw new IllegalArgumentException("Unsupported file type: " + filePath);
         }
+    }
+
+    public void updateRuleFile(String drlContent) throws IOException {
+        // Get project root from working directory
+        String projectRoot = System.getProperty("user.dir");
+        Path fullPath = Paths.get(projectRoot, RULES_PATH2);
+        
+        // Ensure directories exist and write file
+        Files.createDirectories(fullPath.getParent());
+        Files.write(fullPath, drlContent.getBytes());
     }
 }
