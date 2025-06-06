@@ -6,17 +6,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.util.StreamUtils;
+
 
 import com.radicu.ruleengine.model.DrillRule;
+import com.radicu.ruleengine.model.SensorStressData;
 import com.radicu.ruleengine.model.Spindle;
 import com.radicu.ruleengine.model.SpindleData;
 import com.radicu.ruleengine.service.RuleEngineServiceEC;
 import com.radicu.ruleengine.service.SpindleReasonService;
+import com.radicu.ruleengine.service.StressTestService;
 import com.radicu.ruleengine.service.UniversalRuleExtractorService;
 
 import org.springframework.http.MediaType;
@@ -30,24 +29,24 @@ import java.util.List;
 import java.util.Map;
 
 
-
-
 @RestController
 public class RuleController {
 
     private final SpindleReasonService ruleEngineService;
     private final RuleEngineServiceEC ruleEngineServiceEC;
     private final UniversalRuleExtractorService universalRuleExtractorService;
+    private final StressTestService stressTestService;
 
     // Log for debugging
     private static final Logger logger = LoggerFactory.getLogger(RuleController.class);
 
     // Constructor Injection for both services
     public RuleController(SpindleReasonService ruleEngineService, UniversalRuleExtractorService universalRuleExtractorService
-    ,RuleEngineServiceEC ruleEngineServiceEC ) {
+    ,RuleEngineServiceEC ruleEngineServiceEC, StressTestService stressTestService) {
         this.ruleEngineService = ruleEngineService;
         this.universalRuleExtractorService = universalRuleExtractorService;
         this.ruleEngineServiceEC = ruleEngineServiceEC;
+        this.stressTestService = stressTestService;
     }
     @PostMapping(value = "/evaluate", produces = MediaType.APPLICATION_JSON_VALUE)
         public Spindle evaluateSpindleRules(@RequestBody Spindle spindle) {
@@ -108,6 +107,11 @@ public class RuleController {
         public SpindleData runRules(@RequestBody SpindleData spindleData) {
             return ruleEngineServiceEC.runRules(spindleData);
         }
+
+    @PostMapping("/stress-test")
+        public SensorStressData run(@RequestBody SensorStressData sensorStressData) {
+            return stressTestService.runStressTest(sensorStressData);
+        }    
 
     
 }

@@ -1,0 +1,173 @@
+package rules;
+
+import com.radicu.ruleengine.model.SensorStressData;
+
+rule "Critical Temperature Alert"
+salience 100
+when
+    $sensor : SensorStressData(temperature > 100)
+then
+    $sensor.setStatus("CRITICAL: Temperature above 100°C");
+end
+
+rule "High Temperature Warning"
+salience 90
+when
+    $sensor : SensorStressData(temperature > 80 && temperature <= 100)
+then
+    $sensor.setStatus("WARNING: Temperature high (80-100°C)");
+end
+
+rule "Normal Temperature Range"
+salience 10
+when
+    $sensor : SensorStressData(temperature >= 20 && temperature <= 80)
+then
+    $sensor.setStatus("Temperature in safe range");
+end
+
+rule "Critical Pressure Alert"
+salience 100
+when
+    $sensor : SensorStressData(pressure > 15)
+then
+    $sensor.setStatus("CRITICAL: Pressure above 15 bar");
+end
+
+rule "High Pressure Warning"
+salience 90
+when
+    $sensor : SensorStressData(pressure > 10 && pressure <= 15)
+then
+    $sensor.setStatus("WARNING: Pressure high (10-15 bar)");
+end
+
+rule "Normal Pressure Range"
+salience 10
+when
+    $sensor : SensorStressData(pressure >= 3 && pressure <= 10)
+then
+    $sensor.setStatus("Pressure in safe range");
+end
+
+rule "Critical Vibration Alert"
+salience 100
+when
+    $sensor : SensorStressData(vibration > 30)
+then
+    $sensor.setStatus("CRITICAL: Vibration above 30 mm/s");
+end
+
+rule "High Vibration Warning"
+salience 90
+when
+    $sensor : SensorStressData(vibration > 15 && vibration <= 30)
+then
+    $sensor.setStatus("WARNING: Vibration high (15-30 mm/s)");
+end
+
+rule "Normal Vibration Range"
+salience 10
+when
+    $sensor : SensorStressData(vibration >= 2 && vibration <= 15)
+then
+    $sensor.setStatus("Vibration in safe range");
+end
+
+rule "Critical RPM Overspeed"
+salience 100
+when
+    $sensor : SensorStressData(rpm > 6000)
+then
+    $sensor.setStatus("CRITICAL: RPM above 6000");
+end
+
+rule "High RPM Warning"
+salience 90
+when
+    $sensor : SensorStressData(rpm > 4000 && rpm <= 6000)
+then
+    $sensor.setStatus("WARNING: High RPM (4000-6000)");
+end
+
+rule "Normal RPM Range"
+salience 10
+when
+    $sensor : SensorStressData(rpm >= 500 && rpm <= 4000)
+then
+    $sensor.setStatus("RPM in safe range");
+end
+
+rule "Maintenance Suggestion: Temp & Vibration High"
+salience 80
+when
+    $sensor : SensorStressData(temperature > 80, vibration > 15)
+then
+    $sensor.setStatus("Maintenance: Temperature & Vibration high");
+end
+
+rule "Maintenance Suggestion: Pressure & RPM High"
+salience 80
+when
+    $sensor : SensorStressData(pressure > 10, rpm > 4000)
+then
+    $sensor.setStatus("Maintenance: Pressure & RPM high");
+end
+
+rule "Shutdown Required: All Critical"
+salience 120
+when
+    $sensor : SensorStressData(temperature > 100, pressure > 15, vibration > 30, rpm > 6000)
+then
+    $sensor.setStatus("EMERGENCY SHUTDOWN: All critical thresholds exceeded");
+end
+
+rule "Low Temperature Warning"
+salience 50
+when
+    $sensor : SensorStressData(temperature < 10)
+then
+    $sensor.setStatus("WARNING: Temperature too low (<10°C)");
+end
+
+rule "Low Pressure Warning"
+salience 50
+when
+    $sensor : SensorStressData(pressure < 2)
+then
+    $sensor.setStatus("WARNING: Pressure too low (<2 bar)");
+end
+
+rule "Low RPM Warning"
+salience 50
+when
+    $sensor : SensorStressData(rpm < 500)
+then
+    $sensor.setStatus("WARNING: RPM too low (<500 RPM)");
+end
+
+rule "Safe Machine Condition"
+salience 5
+when
+    $sensor : SensorStressData(
+        temperature >= 20 && temperature <= 80,
+        pressure >= 3 && pressure <= 10,
+        vibration >= 2 && vibration <= 15,
+        rpm >= 500 && rpm <= 4000
+    )
+then
+    $sensor.setStatus("Machine in safe operational condition");
+end
+
+rule "Check Required: Any Parameter Marginal"
+salience 40
+when
+    $sensor : SensorStressData(
+        (temperature > 80 && temperature <= 90) || 
+        (pressure > 10 && pressure <= 12) ||
+        (vibration > 15 && vibration <= 20) ||
+        (rpm > 4000 && rpm <= 4500)
+    )
+then
+    $sensor.setStatus("NOTICE: Check recommended - marginal conditions");
+end

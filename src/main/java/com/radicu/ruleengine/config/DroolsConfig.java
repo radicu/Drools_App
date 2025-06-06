@@ -22,6 +22,11 @@ public class DroolsConfig {
         return buildContainer("rules/converted_rules.drl");
     }
 
+    @Bean(name = "stressTestContainer")
+    public KieContainer stressTestContainer(){
+        return buildContainer("rules/stress_test_rules.drl");
+    }
+
     private KieContainer buildContainer(String drlFile) {
         KieServices kieServices = KieServices.Factory.get();
         KieFileSystem kieFileSystem = kieServices.newKieFileSystem();
