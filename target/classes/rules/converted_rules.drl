@@ -1,29 +1,13 @@
 package rules;
 
-import com.radicu.ruleengine.model.SpindleData;
-
-rule "R002"
-    salience 3
-when
-    $fact : SpindleData(spindleCurrent > 6, alarmLimit3200 > 0.0, xTableCurrent > 1, yTableCurrent > 1, drillingCondition1 > 3, drillingCondition2 > 3, drillingCondition3 > 3)
-then
-    $fact.setState("Check High");
-end
-
-rule "R001"
-    salience 0
-when
-    $fact : SpindleData(spindleCurrent > 100, alarmLimit3200 > 0.0, xTableCurrent > 6, yTableCurrent > 1, drillingCondition1 > 3)
-then
-    $fact.setState("Continuous reasoning");
-end
+import com.radicu.ruleengine.model.Variable;
 
 rule "R004"
     salience 1
 when
-    $fact : SpindleData(state == 'Check High', drillingCondition2 < alarmLimit4200, drillingCondition3 < alarmLimit5100)
+    $fact : Variable(state == "Check High", drillingCondition2 < alarmLimit4200, drillingCondition3 < alarmLimit5100)
 then
-    $fact.setState("False Alarm");
+    $fact.setState("False alarm");
     $fact.setState("Replace bits");
     $fact.setState("Back to Start");
 end
@@ -31,8 +15,24 @@ end
 rule "R003"
     salience 2
 when
-    $fact : SpindleData(state == 'Check High', drillingCondition2 > alarmLimit2, drillingCondition3 > alarmLimit2)
+    $fact : Variable(state == "Check High", drillingCondition2 > alarmLimit2, drillingCondition3 > alarmLimit2)
 then
     $fact.setState("Replace bits");
+end
+
+rule "R002"
+    salience 3
+when
+    $fact : Variable(spindleCurrent > 6, alarmLimit3200 > 0.0, xTableCurrent > 1, yTableCurrent > 1, drillingCondition1 > 3, drillingCondition2 > 3, drillingCondition3 > 3)
+then
+    $fact.setState("Check High");
+end
+
+rule "R001"
+    salience 0
+when
+    $fact : Variable(spindleCurrent > 100, alarmLimit3200 > 0.0, xTableCurrent > 6, yTableCurrent > 1, drillingCondition1 > 3)
+then
+    $fact.setState("Continuous reasoning");
 end
 

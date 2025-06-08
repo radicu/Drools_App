@@ -6,8 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import com.radicu.ruleengine.model.DrillRule;
-import com.radicu.ruleengine.model.Spindle;
+import com.radicu.ruleengine.model.RuleStructure;
 
 import org.springframework.core.io.ClassPathResource;
 
@@ -29,49 +28,28 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Service
-public class SpindleReasonService {
+public class RulesExcel {
 
 
 
-    private final KieContainer spindleKieContainer;
 
     private static final String RULES_PATH = "rules/spindle_rules.drl";
     
     private static final String RULES_PATH2= "src/main/resources/rules/spindle_rules.drl";
 
     //Log for debugging
-    private static final Logger logger = LoggerFactory.getLogger(SpindleReasonService.class);
+    private static final Logger logger = LoggerFactory.getLogger(RulesExcel.class);
 
-    @Autowired
-    public SpindleReasonService(@Qualifier("spindleKieContainer") KieContainer spindleKieContainer) {
-        this.spindleKieContainer = spindleKieContainer;
-    }
 
-    public Spindle evaluateRules(Spindle spindle) {
-        KieSession kieSession = spindleKieContainer.newKieSession();
-        try {
-            kieSession.insert(spindle);
-            long startTime = System.nanoTime();
-            kieSession.fireAllRules();
-            long endTime = System.nanoTime();
-            long elapsedMillis = (endTime - startTime) / 1_000_000;
 
-            System.out.println("Reasoning time: {" + elapsedMillis + "}ms");
-
-        } finally {
-            kieSession.dispose();
-        }
-        return spindle;
-    }
-
-    public List<DrillRule> getAllRules() throws IOException {
+    public List<RuleStructure> getAllRules() throws IOException {
         ClassPathResource resource = new ClassPathResource(RULES_PATH);
         String content = new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
         return parseRules(content);
     }
 
-    private List<DrillRule> parseRules(String content) {
-        List<DrillRule> rules = new ArrayList<>();
+    private List<RuleStructure> parseRules(String content) {
+        List<RuleStructure> rules = new ArrayList<>();
         logger.debug("Starting rule parsing. Content length: {} characters", content.length());
         
         // Split content into individual rule blocks
@@ -89,7 +67,7 @@ public class SpindleReasonService {
                 ruleCount++;
                 logger.debug("Processing rule block #{}", ruleCount);
                 
-                DrillRule rule = parseSingleRule(block);
+                RuleStructure rule = parseSingleRule(block);
                 if (rule != null) {
                     rules.add(rule);
                     logger.info("Parsed rule: '{}' (salience: {})", 
@@ -105,7 +83,7 @@ public class SpindleReasonService {
         return rules;
     }
     
-    private DrillRule parseSingleRule(String block) {
+    private RuleStructure parseSingleRule(String block) {
         // Rule name extraction
         Matcher nameMatcher = Pattern.compile("rule\\s+\"([^\"]+)\"").matcher(block);
         if (!nameMatcher.find()) {
@@ -145,7 +123,7 @@ public class SpindleReasonService {
         conditions = conditions.replaceAll("\\s+", "").replaceAll("\\$spindle\\s*:", "Spindle:");
         actions = actions.replaceAll("\\s+", " ").replaceAll("\\$spindle\\.", "this.");
         
-        return new DrillRule(ruleName, salience, conditions, actions);
+        return new RuleStructure(ruleName, salience, conditions, actions);
     }
 
 

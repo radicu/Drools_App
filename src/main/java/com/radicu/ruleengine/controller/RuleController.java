@@ -9,14 +9,16 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.http.HttpHeaders;
 
 
-import com.radicu.ruleengine.model.DrillRule;
+import com.radicu.ruleengine.model.RuleStructure;
 import com.radicu.ruleengine.model.SensorStressData;
-import com.radicu.ruleengine.model.Spindle;
-import com.radicu.ruleengine.model.SpindleData;
-import com.radicu.ruleengine.service.RuleEngineServiceEC;
-import com.radicu.ruleengine.service.SpindleReasonService;
+import com.radicu.ruleengine.model.Variable;//Un-comment this after upload KG
+import com.radicu.ruleengine.service.ControllerUpdater;
+import com.radicu.ruleengine.service.KGModelGenerator;
+import com.radicu.ruleengine.service.RuleEngineServiceGenerator;
+import com.radicu.ruleengine.service.RulesExcel;
 import com.radicu.ruleengine.service.StressTestService;
 import com.radicu.ruleengine.service.UniversalRuleExtractorService;
+import com.radicu.ruleengine.service.RuleEngineServiceVariable;//Un-comment this after upload KG
 
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -32,32 +34,38 @@ import java.util.Map;
 @RestController
 public class RuleController {
 
-    private final SpindleReasonService ruleEngineService;
-    private final RuleEngineServiceEC ruleEngineServiceEC;
+    private final RulesExcel ruleEngineService;
     private final UniversalRuleExtractorService universalRuleExtractorService;
     private final StressTestService stressTestService;
+    private final KGModelGenerator kgModelGenerator;
+    private final RuleEngineServiceGenerator ruleEngineServiceGenerator;
+    private final ControllerUpdater controllerUpdater;
+    private final RuleEngineServiceVariable ruleEngineServiceVariable;//Un-comment this after upload KG
 
     // Log for debugging
     private static final Logger logger = LoggerFactory.getLogger(RuleController.class);
 
     // Constructor Injection for both services
-    public RuleController(SpindleReasonService ruleEngineService, UniversalRuleExtractorService universalRuleExtractorService
-    ,RuleEngineServiceEC ruleEngineServiceEC, StressTestService stressTestService) {
+    public RuleController(RulesExcel ruleEngineService, UniversalRuleExtractorService universalRuleExtractorService
+    , StressTestService stressTestService, KGModelGenerator kgModelGenerator, 
+    RuleEngineServiceGenerator ruleEngineServiceGenerator, ControllerUpdater controllerUpdater
+    , RuleEngineServiceVariable ruleEngineServiceVariable //Un-comment this after upload KG
+    ) 
+    {
         this.ruleEngineService = ruleEngineService;
         this.universalRuleExtractorService = universalRuleExtractorService;
-        this.ruleEngineServiceEC = ruleEngineServiceEC;
         this.stressTestService = stressTestService;
-    }
-    @PostMapping(value = "/evaluate", produces = MediaType.APPLICATION_JSON_VALUE)
-        public Spindle evaluateSpindleRules(@RequestBody Spindle spindle) {
-        return ruleEngineService.evaluateRules(spindle);
+        this.kgModelGenerator = kgModelGenerator;
+        this.ruleEngineServiceGenerator = ruleEngineServiceGenerator;
+        this.controllerUpdater = controllerUpdater;
+        this.ruleEngineServiceVariable = ruleEngineServiceVariable; //Un-comment this after upload KG
     }
 
-    // Inside the class:
+    // Download rule in excel format
     @GetMapping("/download-rule")
-        public ResponseEntity<List<DrillRule>> downloadRules() {
+        public ResponseEntity<List<RuleStructure>> downloadRules() {
         try {
-            List<DrillRule> rules = ruleEngineService.getAllRules();
+            List<RuleStructure> rules = ruleEngineService.getAllRules();
             logger.info("Successfully loaded {} rules", rules.size());
             return ResponseEntity.ok(rules);
         } catch (Exception e) {
@@ -66,6 +74,7 @@ public class RuleController {
         }
     }
 
+   //Update rule using excel, still in work 
    @PostMapping("/update-rule")
         public ResponseEntity<String> updateRules(@RequestBody List<Map<String, Object>> rulesPayload) {
         try {
@@ -82,36 +91,59 @@ public class RuleController {
         }
     }
 
-    //Endpoint to convert ttl-to-drl (for rule only, for now)
     @PostMapping("/api/converter/file-to-drl")
-        public ResponseEntity<byte[]> convertFileToDrl(@RequestParam("file") MultipartFile file) throws IOException {
-            // Save uploaded file temporarily
-            File tempFile = File.createTempFile("uploaded-", file.getOriginalFilename());
+    public ResponseEntity<byte[]> convertFileToDrlAndGenerateModel(@RequestParam("file") MultipartFile file) {
+        File tempFile = null;
+        try {
+            // 1. Save uploaded file temporarily
+            tempFile = File.createTempFile("uploaded-", file.getOriginalFilename());
             file.transferTo(tempFile);
 
-            // Extract DRL
-            String drlContent = universalRuleExtractorService.convertRdfToDrl(tempFile.getAbsolutePath());
+            String tempFilePath = tempFile.getAbsolutePath();
 
-            // Clean up temp file
-            tempFile.delete();
+            // 2. Convert to DRL
+            String drlContent = universalRuleExtractorService.convertRdfToDrl(tempFilePath);
 
-            // Prepare response
+            // 3. Generate Model.java
+            kgModelGenerator.generateModelFromKG(tempFilePath);
+
+            // 4. Generate Service.java
+            ruleEngineServiceGenerator.generateServiceFromModel("Variable");
+
+            // 5. Update Controller.java
+            controllerUpdater.addEvaluateEndpoint("Variable");
+
+            // 6. Prepare response for DRL file download
             byte[] drlBytes = drlContent.getBytes();
+
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"converted_rules.drl\"")
                     .contentType(MediaType.TEXT_PLAIN)
                     .body(drlBytes);
-        }
 
-    @PostMapping("/run")
-        public SpindleData runRules(@RequestBody SpindleData spindleData) {
-            return ruleEngineServiceEC.runRules(spindleData);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(("❌ Failed to process file: " + e.getMessage()).getBytes());
+        } finally {
+            if (tempFile != null && tempFile.exists()) {
+                tempFile.delete();
+            }
         }
+    }
 
+
+    //Stress-test
     @PostMapping("/stress-test")
         public SensorStressData run(@RequestBody SensorStressData sensorStressData) {
             return stressTestService.runStressTest(sensorStressData);
-        }    
+        }
 
-    
+
+    @PostMapping("/evaluate-rule")
+    public ResponseEntity<Variable> evaluateRule(@RequestBody Variable variable) {
+        Variable result = ruleEngineServiceVariable.runRules(variable);
+        return ResponseEntity.ok(result);
+    }
+
+
 }

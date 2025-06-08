@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class DrillRule {
+public class RuleStructure {
     private String ruleName;
     private Integer salience;
     private String conditions;
@@ -13,7 +13,7 @@ public class DrillRule {
     private String formattedRule;  // Add this new field
 
     // Update constructor
-    public DrillRule(String ruleName, Integer salience, 
+    public RuleStructure(String ruleName, Integer salience, 
                     String conditions, String actions) {
         this.ruleName = ruleName;
         this.salience = salience;

@@ -12,19 +12,16 @@ import org.kie.internal.io.ResourceFactory;  // Add this import
 @Configuration
 public class DroolsConfig {
 
-    @Bean(name = "spindleKieContainer")
-    public KieContainer spindleKieContainer() {
-        return buildContainer("rules/spindle_rules.drl");
-    }
-
-    @Bean(name = "spindleDataKieContainer")
-    public KieContainer spindleDataKieContainer() {
-        return buildContainer("rules/converted_rules.drl");
-    }
 
     @Bean(name = "stressTestContainer")
     public KieContainer stressTestContainer(){
         return buildContainer("rules/stress_test_rules.drl");
+    }
+
+    // After generate the new KG templates please uncomment these lines below
+    @Bean(name = "variableKieContainer")
+    public KieContainer variableKieContainer(){
+        return buildContainer("rules/converted_rules.drl");
     }
 
     private KieContainer buildContainer(String drlFile) {

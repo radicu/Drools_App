@@ -1,27 +1,27 @@
-package com.radicu.ruleengine.service;
+package ${packageName};
 
-import com.radicu.ruleengine.model.SpindleData;
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
+import com.radicu.ruleengine.model.Variable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 @Service
-public class RuleEngineServiceEC {
+public class ${serviceClassName} {
 
-    private final KieContainer spindleDataKieContainer;
+    private final KieContainer ${kieContainerName};
 
     @Autowired
-    public RuleEngineServiceEC(@Qualifier("spindleDataKieContainer") KieContainer spindleDataKieContainer) {
-        this.spindleDataKieContainer = spindleDataKieContainer;
+    public ${serviceClassName}(@Qualifier("${kieContainerName}") KieContainer ${kieContainerName}) {
+        this.${kieContainerName} = ${kieContainerName};
     }
 
-    public SpindleData runRules(SpindleData spindleData) {
-        KieSession kieSession = spindleDataKieContainer.newKieSession();
+    public ${modelClassName} runRules(${modelClassName} ${modelParamName}) {
+        KieSession kieSession = ${kieContainerName}.newKieSession();
         try {
-            kieSession.insert(spindleData);
-             long startTime = System.nanoTime();
+            kieSession.insert(${modelParamName});
+            long startTime = System.nanoTime();
             kieSession.fireAllRules();
             long endTime = System.nanoTime();
             long elapsedMillis = (endTime - startTime) / 1_000_000;
@@ -30,6 +30,6 @@ public class RuleEngineServiceEC {
         } finally {
             kieSession.dispose();
         }
-        return spindleData;
+        return ${modelParamName};
     }
 }

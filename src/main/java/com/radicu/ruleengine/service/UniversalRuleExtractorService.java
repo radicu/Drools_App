@@ -22,21 +22,6 @@ public class UniversalRuleExtractorService {
 
     private static final String RULES_PATH2= "src/main/resources/rules/converted_rules.drl";
 
-    // ✅ Fields matching your Java model (camelCase)
-    private static final Set<String> validFields = new HashSet<>(Arrays.asList(
-        "spindleCurrent",
-        "alarmLimit3200",
-        "alarmLimit4200",
-        "alarmLimit5100",
-        "alarmLimit2",
-        "xTableCurrent",
-        "yTableCurrent",
-        "drillingCondition1",
-        "drillingCondition2",
-        "drillingCondition3",
-        "state"
-    ));
-
 
     public String convertRdfToDrl(String filePath) throws IOException {
         InputStream in = FileManager.get().open(filePath);
@@ -50,7 +35,7 @@ public class UniversalRuleExtractorService {
 
         StringBuilder drl = new StringBuilder();
         drl.append("package rules;\n\n");
-        drl.append("import com.radicu.ruleengine.model.SpindleData;\n\n");
+        drl.append("import com.radicu.ruleengine.model.Variable;\n\n");
 
         String sparqlQuery = """
             PREFIX mts: <http://mts.com/>
@@ -129,20 +114,19 @@ public class UniversalRuleExtractorService {
         Set<String> usedFields = new HashSet<>();
 
         if (conditionLiteral != null && !conditionLiteral.isEmpty()) {
-            // Clean the condition string
             String cleanedCondition = conditionLiteral.replaceAll("\\?", "").trim();
             String[] conditionParts = cleanedCondition.split("&&");
 
             StringBuilder conditionBuilder = new StringBuilder();
-            conditionBuilder.append("$fact : SpindleData(");
+            conditionBuilder.append("$fact : Variable(");
 
             boolean first = true;
             for (String part : conditionParts) {
                 String cond = part.trim();
                 if (cond.isEmpty()) continue;
 
-                // 🚩 NEW: Smart detect comparison vs bare field
-                Pattern pattern = Pattern.compile("^([a-zA-Z0-9_]+)\\s*([><=!]+)\\s*(.+)$"); // left operator right
+                // Smart detect comparison vs bare field
+                Pattern pattern = Pattern.compile("^([a-zA-Z0-9_]+)\\s*([><=!]+)\\s*(.+)$");
                 Matcher matcher = pattern.matcher(cond);
 
                 if (matcher.find()) {
@@ -154,37 +138,29 @@ public class UniversalRuleExtractorService {
                     String normalizedLeft = normalizeFieldName(leftField);
                     String normalizedRight = normalizeFieldName(rightValue.replaceAll("\\?", ""));
 
-                    boolean validLeft = validFields.contains(normalizedLeft);
-                    boolean validRight = isNumeric(rightValue) || validFields.contains(normalizedRight) ||
-                            (rightValue.startsWith("'") && rightValue.endsWith("'")) ||
-                            (rightValue.startsWith("\"") && rightValue.endsWith("\""));
+                    String updatedCond = normalizedLeft + " " + operator + " ";
 
-                    if (validLeft && validRight) {
-                        String updatedCond = normalizedLeft + " " + operator + " ";
-
-                        if (isNumeric(rightValue)) {
-                            updatedCond += rightValue;
-                        } else if ((rightValue.startsWith("'") && rightValue.endsWith("'")) ||
-                                (rightValue.startsWith("\"") && rightValue.endsWith("\""))) {
-                            // String literal case: remove outer quotes and wrap with double quotes
-                            String cleanString = rightValue.substring(1, rightValue.length() - 1);
-                            updatedCond += "\"" + cleanString + "\"";
-                        } else {
-                            updatedCond += normalizedRight;
-                        }
-
-                        if (!first) {
-                            conditionBuilder.append(", ");
-                        }
-                        conditionBuilder.append(updatedCond);
-                        first = false;
+                    if (isNumeric(rightValue)) {
+                        updatedCond += rightValue;
+                    } else if ((rightValue.startsWith("'") && rightValue.endsWith("'")) ||
+                            (rightValue.startsWith("\"") && rightValue.endsWith("\""))) {
+                        String cleanString = rightValue.substring(1, rightValue.length() - 1);
+                        updatedCond += "\"" + cleanString + "\"";
+                    } else {
+                        updatedCond += normalizedRight;
                     }
+
+                    if (!first) {
+                        conditionBuilder.append(", ");
+                    }
+                    conditionBuilder.append(updatedCond);
+                    first = false;
                 } else {
-                    // 🚩 Bare field condition (float, assume > 0.0 check)
+                    // Bare field (assume > 0.0 check)
                     String fieldName = cond;
                     String normalizedField = normalizeFieldName(fieldName);
 
-                    if (validFields.contains(normalizedField) && !usedFields.contains(normalizedField)) {
+                    if (!usedFields.contains(normalizedField)) {
                         usedFields.add(normalizedField);
 
                         String updatedCond = normalizedField + " > 0.0";
@@ -207,6 +183,7 @@ public class UniversalRuleExtractorService {
 
         return conditions;
     }
+
 
 
 
