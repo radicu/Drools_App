@@ -65,7 +65,7 @@ def start_mqtt_client():
     client.on_connect = on_connect
     client.on_message = on_message
 
-    broker_address = ""
+    broker_address = "localhost"
     port = 1883
 
     max_retries = 5
