@@ -136,7 +136,7 @@ def reasoning():
 
 
 @app.route('/get-mqtt', methods=['GET'])
-def reasoning():
+def get_mqtt():
     # Read latest MQTT data
 
     xTableCurerrent = mqtt_data.get("xTableCurrent")
@@ -165,4 +165,4 @@ if __name__ == "__main__":
     mqtt_thread.start()
     
     # Start Flask server
-    app.run(host="0.0.0.0", port=5000)
+    app.run(host="0.0.0.0", port=5555)
