@@ -30,7 +30,7 @@ def on_message(client, userdata, msg):
         if topic == "TableCurrent":
             x_axil = data.get("X_Axil")
             y_axil = data.get("Y_Axil")
-            print(f"TableCurrent - X_Axil: {x_axil}, Y_Axil: {y_axil}")
+            # print(f"TableCurrent - X_Axil: {x_axil}, Y_Axil: {y_axil}")
 
             # Save to global mqtt_data
             mqtt_data["xTableCurrent"] = x_axil
@@ -40,7 +40,7 @@ def on_message(client, userdata, msg):
             max_mag = data.get("max_mag")
             max_freq = data.get("max_freq")
             timestamp = data.get("timestamp")
-            print(f"Spindle1/1X - Max Mag: {max_mag}, Max Freq: {max_freq}, Timestamp: {timestamp}")
+            # print(f"Spindle1/1X - Max Mag: {max_mag}, Max Freq: {max_freq}, Timestamp: {timestamp}")
 
             # Save to global mqtt_data
             mqtt_data["drillingCondition1"] = max_mag
