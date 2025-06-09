@@ -15,7 +15,6 @@ import java.util.Map;
 @Service
 public class RuleEngineServiceGenerator {
 
-    private static final String TEMPLATE_DIRECTORY = "src/main/resources/templates"; // .ftl templates
     private static final String SERVICE_OUTPUT_DIRECTORY = "src/main/java/com/radicu/ruleengine/service/"; // output services
 
     public void generateServiceFromModel(String modelClassName) throws IOException, TemplateException {
