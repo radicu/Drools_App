@@ -18,7 +18,6 @@ import java.util.*;
 @Service
 public class KGModelGenerator {
 
-    private static final String TEMPLATE_DIRECTORY = "src/main/resources/templates"; // .ftl templates
     private static final String MODEL_OUTPUT_DIRECTORY = "src/main/java/com/radicu/ruleengine/model/"; // output models
 
     private static final String PREFIXES =
@@ -84,8 +83,9 @@ public class KGModelGenerator {
 
             // 4. Setup FreeMarker
             Configuration cfg = new Configuration(Configuration.VERSION_2_3_32);
-            cfg.setDirectoryForTemplateLoading(new File(TEMPLATE_DIRECTORY));
+            cfg.setClassLoaderForTemplateLoading(this.getClass().getClassLoader(), "/templates");
             cfg.setDefaultEncoding("UTF-8");
+
 
             // 5. Load Template
             Template template = cfg.getTemplate("model.ftl");

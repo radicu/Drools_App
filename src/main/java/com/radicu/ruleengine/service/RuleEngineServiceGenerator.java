@@ -29,7 +29,7 @@ public class RuleEngineServiceGenerator {
 
         // Step 2: Setup FreeMarker
         Configuration cfg = new Configuration(Configuration.VERSION_2_3_32);
-        cfg.setDirectoryForTemplateLoading(new File(TEMPLATE_DIRECTORY));
+        cfg.setClassLoaderForTemplateLoading(this.getClass().getClassLoader(), "/templates");
         cfg.setDefaultEncoding("UTF-8");
 
         // Step 3: Load service.ftl Template
