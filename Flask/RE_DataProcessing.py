@@ -3,57 +3,57 @@ import time
 import threading
 from flask import Flask, jsonify, send_file, request
 import paho.mqtt.client as mqtt
-
-
+import json
 
 app = Flask(__name__)
 
-SPRING_BOOT_URL_RULE_ENGINE = "http://localhost:8080/evaluate-rule" #Local
-
-alarmLimit3200_Counter = 0
-alarmLimit4200_Counter = 0
-alarmLimit5100_Counter = 0
-
+SPRING_BOOT_URL_RULE_ENGINE = "http://localhost:8080/evaluate-rule"  # Local
 
 # Global variable to store MQTT data
 mqtt_data = {
     "xTableCurrent": None,
     "yTableCurrent": None,
-    "spindleCurrent": None,
     "drillingCondition1": None,
-    "drillingCondition2": None,
-    "drillingCondition3": None
 }
+
+alarmCondition3200 = 0.0
+alarmCondition3200_counter = 0 
 
 # MQTT Callbacks
 def on_message(client, userdata, msg):
     topic = msg.topic
     payload = msg.payload.decode()
 
-    # Map topic to mqtt_data dictionary
-    key_mapping = {
-        "home/sensor/xTableCurrent": "xTableCurrent",
-        "home/sensor/yTableCurrent": "yTableCurrent",
-        "home/sensor/spindleCurrent": "spindleCurrent",
-        "home/sensor/drillingCondition1": "drillingCondition1",
-        "home/sensor/drillingCondition2": "drillingCondition2",
-        "home/sensor/drillingCondition3": "drillingCondition3"
-    }
+    try:
+        data = json.loads(payload)
 
-    if topic in key_mapping:
-        mqtt_data[key_mapping[topic]] = payload
-        print(f"Updated {key_mapping[topic]} to {payload}")
+        if topic == "TableCurrent":
+            x_axil = data.get("X_Axil")
+            y_axil = data.get("Y_Axil")
+            print(f"TableCurrent - X_Axil: {x_axil}, Y_Axil: {y_axil}")
+
+            # Save to global mqtt_data
+            mqtt_data["xTableCurrent"] = x_axil
+            mqtt_data["yTableCurrent"] = y_axil
+
+        elif topic == "spindle1/1X":
+            max_mag = data.get("max_mag")
+            max_freq = data.get("max_freq")
+            timestamp = data.get("timestamp")
+            print(f"Spindle1/1X - Max Mag: {max_mag}, Max Freq: {max_freq}, Timestamp: {timestamp}")
+
+            # Save to global mqtt_data
+            mqtt_data["drillingCondition1"] = max_mag
+
+    except json.JSONDecodeError as e:
+        print(f"Failed to decode JSON: {e}")
 
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
         print("Connected successfully!")
         topics = [
-            "home/sensor/xTableCurrent",
-            "home/sensor/yTableCurrent",
-            "home/sensor/spindleCurrent",
-            "home/sensor/drillingCondition1",
-            "home/sensor/drillingCondition2",
-            "home/sensor/drillingCondition3"
+            "TableCurrent",     # The topic for TableCurrent
+            "spindle1/1X"       # The topic for spindle1/1X
         ]
         for topic in topics:
             client.subscribe(topic)
@@ -65,7 +65,7 @@ def start_mqtt_client():
     client.on_connect = on_connect
     client.on_message = on_message
 
-    broker_address = "broker.hivemq.com"
+    broker_address = ""
     port = 1883
 
     max_retries = 5
@@ -111,19 +111,53 @@ def send_rule_to_endpoint(rule_data, endpoint_url):
 @app.route('/run-rule-engine', methods=['GET'])
 def reasoning():
     # Read latest MQTT data
+
+    xTableCurerrent = mqtt_data.get("xTableCurrent")
+    yTableCurrent = mqtt_data.get("yTableCurrent")
+
+    if(xTableCurerrent < 1 and yTableCurrent < 1):
+        alarmCondition3200_counter += 1
+
+        if alarmCondition3200_counter > 120:
+            alarmCondition3200 = 1.0
+    else:
+        alarmCondition3200_counter = 0
+        alarmCondition3200 = 0.0
+
     payload = {
-        "alarmLimit3200": 0.0,
-        "alarmLimit4200": 0.0,
-        "alarmLimit5100": 0.0,
-        "spindleCurrent": mqtt_data.get("spindleCurrent"),
-        "xTableCurrent": mqtt_data.get("xTableCurrent"),
-        "yTableCurrent": mqtt_data.get("yTableCurrent"),
+        "xTableCurrent": xTableCurerrent,
+        "yTableCurrent": yTableCurrent,
         "drillingCondition1": mqtt_data.get("drillingCondition1"),
-        "drillingCondition2": mqtt_data.get("drillingCondition2"),
-        "drillingCondition3": mqtt_data.get("drillingCondition3")
+        "alarmCondition3200": alarmCondition3200
     }
+    print("Sending payload:", payload)
     result = send_rule_to_endpoint(payload, SPRING_BOOT_URL_RULE_ENGINE)
     return result.get('returned_state', '')
+
+
+@app.route('/get-mqtt', methods=['GET'])
+def reasoning():
+    # Read latest MQTT data
+
+    xTableCurerrent = mqtt_data.get("xTableCurrent")
+    yTableCurrent = mqtt_data.get("yTableCurrent")
+
+    if(xTableCurerrent < 1 and yTableCurrent < 1):
+        alarmCondition3200_counter += 1
+
+        if alarmCondition3200_counter > 120:
+            alarmCondition3200 = 1.0
+    else:
+        alarmCondition3200_counter = 0
+        alarmCondition3200 = 0.0
+
+    payload = {
+        "xTableCurrent": xTableCurerrent,
+        "yTableCurrent": yTableCurrent,
+        "drillingCondition1": mqtt_data.get("drillingCondition1"),
+        "alarmCondition3200": alarmCondition3200
+    }
+    return jsonify(payload)
 
 if __name__ == "__main__":
     # Start MQTT client in background
