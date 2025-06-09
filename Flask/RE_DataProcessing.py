@@ -3,6 +3,7 @@ import time
 import threading
 from flask import Flask, jsonify, send_file, request
 import paho.mqtt.client as mqtt
+from influxdb_client import InfluxDBClient
 import json
 
 app = Flask(__name__)
