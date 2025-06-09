@@ -18,7 +18,8 @@ public class Variable {
     private String spindle_current;
     private float xTableCurrent;
     private float yTableCurrent;
-    private String rpm;
+    private float feedRate;
+    private float rpm;
     private String spindle;
     private float alarmLimit3200;
     private float alarmLimit4200;
@@ -133,12 +134,21 @@ public class Variable {
         this.yTableCurrent = yTableCurrent;
     }
 
+    @JsonProperty("feedRate")
+    public float getFeedRate() {
+        return feedRate;
+    }
+
+    public void setFeedRate(float feedRate) {
+        this.feedRate = feedRate;
+    }
+
     @JsonProperty("rpm")
-    public String getRpm() {
+    public float getRpm() {
         return rpm;
     }
 
-    public void setRpm(String rpm) {
+    public void setRpm(float rpm) {
         this.rpm = rpm;
     }
 

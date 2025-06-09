@@ -15,30 +15,39 @@ public class ControllerUpdater {
         Path controllerFilePath = Paths.get(CONTROLLER_PATH);
         List<String> lines = Files.readAllLines(controllerFilePath);
 
-        // 2. Find insertion point — before last '}' of class
+        // 2. Check if @PostMapping("/evaluate-rule") already exists
+        boolean endpointExists = lines.stream()
+            .anyMatch(line -> line.contains("@PostMapping(\"/evaluate-rule\")"));
+
+        if (endpointExists) {
+            System.out.println("✅ @PostMapping('/evaluate-rule') already exists, skipping endpoint generation.");
+            return; // Do nothing if already exists
+        }
+
+        // 3. Find insertion point — before last '}'
         int insertPosition = lines.size() - 1;
 
-        // 3. Create endpoint method text
+        // 4. Create endpoint method text (commented by default)
         String modelParamName = decapitalize(modelClassName);
         String serviceInstanceName = "ruleEngineService" + modelClassName;
 
         String endpoint = String.format(
-            "    @PostMapping(\"/evaluate-rule\")\n" +
-            "    public ResponseEntity<%s> evaluateRule(@RequestBody %s %s) {\n" +
-            "        %s result = %s.runRules(%s);\n" +
-            "        return ResponseEntity.ok(result);\n" +
-            "    }\n\n",
+            "    // @PostMapping(\"/evaluate-rule\")\n" +
+            "    // public ResponseEntity<%s> evaluateRule(@RequestBody %s %s) {\n" +
+            "    //     %s result = %s.runRules(%s);\n" +
+            "    //     return ResponseEntity.ok(result);\n" +
+            "    // }\n\n",
             modelClassName, modelClassName, modelParamName,
             modelClassName, serviceInstanceName, modelParamName
         );
 
-        // 4. Insert endpoint code
+        // 5. Insert endpoint code
         lines.add(insertPosition, endpoint);
 
-        // 5. Write updated file back
+        // 6. Write updated file back
         Files.write(controllerFilePath, lines);
 
-        System.out.println("@PostMapping('/evaluate-rule') added successfully for model: " + modelClassName);
+        System.out.println("✅ @PostMapping('/evaluate-rule') added successfully for model: " + modelClassName);
     }
 
     private String decapitalize(String str) {
