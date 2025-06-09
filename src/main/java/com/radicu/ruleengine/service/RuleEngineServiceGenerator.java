@@ -9,13 +9,14 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
 @Service
 public class RuleEngineServiceGenerator {
 
-    private static final String SERVICE_OUTPUT_DIRECTORY = "src/main/java/com/radicu/ruleengine/service/"; // output services
+    private static final String SERVICE_OUTPUT_DIRECTORY = Paths.get(System.getProperty("user.dir"), "src", "main", "java", "com", "radicu", "ruleengine", "service").toString();
 
     public void generateServiceFromModel(String modelClassName) throws IOException, TemplateException {
         // Step 1: Prepare Data for Template
@@ -40,7 +41,7 @@ public class RuleEngineServiceGenerator {
             outputDir.mkdirs(); // create directory if missing
         }
 
-        String outputFilePath = SERVICE_OUTPUT_DIRECTORY + "RuleEngineService" + modelClassName + ".java";
+        String outputFilePath = Paths.get(SERVICE_OUTPUT_DIRECTORY, "RuleEngineService" + modelClassName + ".java").toString();
         try (Writer fileWriter = new FileWriter(outputFilePath)) {
             template.process(data, fileWriter);
         }

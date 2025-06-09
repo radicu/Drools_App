@@ -2,14 +2,6 @@ package rules;
 
 import com.radicu.ruleengine.model.Variable;
 
-rule "R005"
-    salience 50
-when
-    $fact : Variable(feedRate > 1400, rpm > 4000)
-then
-    $fact.setState("Abnormal Parameter");
-end
-
 rule "R004"
     salience 1
 when

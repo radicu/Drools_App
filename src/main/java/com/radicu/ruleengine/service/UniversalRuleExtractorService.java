@@ -20,7 +20,8 @@ public class UniversalRuleExtractorService {
 
     // private static final String NAMESPACE = "http://mts.com/";
 
-    private static final String RULES_PATH2= "src/main/resources/rules/converted_rules.drl";
+    private static final String RULES_PATH2 = Paths.get(System.getProperty("user.dir"), "src", "main", "resources", "rules", "converted_rules.drl").toString();
+
 
 
     public String convertRdfToDrl(String filePath) throws IOException {
@@ -271,12 +272,11 @@ public class UniversalRuleExtractorService {
     }
 
     public void updateRuleFile(String drlContent) throws IOException {
-        // Get project root from working directory
-        String projectRoot = System.getProperty("user.dir");
-        Path fullPath = Paths.get(projectRoot, RULES_PATH2);
-        
+        Path fullPath = Paths.get(RULES_PATH2); // No more projectRoot
+
         // Ensure directories exist and write file
         Files.createDirectories(fullPath.getParent());
         Files.write(fullPath, drlContent.getBytes());
-    }
+        }
+
 }

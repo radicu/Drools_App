@@ -13,12 +13,14 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.nio.file.Paths;
 import java.util.*;
 
 @Service
 public class KGModelGenerator {
 
-    private static final String MODEL_OUTPUT_DIRECTORY = "src/main/java/com/radicu/ruleengine/model/"; // output models
+    private static final String MODEL_OUTPUT_DIRECTORY = Paths.get(System.getProperty("user.dir"), "src", "main", "java", "com", "radicu", "ruleengine", "model").toString();
+
 
     private static final String PREFIXES =
         "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
@@ -96,7 +98,7 @@ public class KGModelGenerator {
                 outputDir.mkdirs(); // create the directory if not exists
             }
 
-            String outputFilePath = MODEL_OUTPUT_DIRECTORY + "Variable.java";
+            String outputFilePath = Paths.get(MODEL_OUTPUT_DIRECTORY, "Variable.java").toString();
             try (Writer fileWriter = new FileWriter(outputFilePath)) {
                 template.process(data, fileWriter);
             }

@@ -8,14 +8,14 @@ import org.springframework.stereotype.Service;
 @Service
 public class ControllerUpdater {
 
-    private static final String CONTROLLER_PATH = "src/main/java/com/radicu/ruleengine/controller/RuleController.java";
-
     public void addEvaluateEndpoint(String modelClassName) throws IOException {
-        // 1. Read all lines of the controller file
-        Path controllerFilePath = Paths.get(CONTROLLER_PATH);
+        // Dynamically detect project root
+        String projectRoot = System.getProperty("user.dir");
+        Path controllerFilePath = Paths.get(projectRoot, "src", "main", "java", "com", "radicu", "ruleengine", "controller", "RuleController.java");
+
         List<String> lines = Files.readAllLines(controllerFilePath);
 
-        // 2. Check if @PostMapping("/evaluate-rule") already exists
+        // Check if endpoint already exists
         boolean endpointExists = lines.stream()
             .anyMatch(line -> line.contains("@PostMapping(\"/evaluate-rule\")"));
 
@@ -24,10 +24,9 @@ public class ControllerUpdater {
             return; // Do nothing if already exists
         }
 
-        // 3. Find insertion point — before last '}'
+        // Find insertion point — before last '}'
         int insertPosition = lines.size() - 1;
 
-        // 4. Create endpoint method text (commented by default)
         String modelParamName = decapitalize(modelClassName);
         String serviceInstanceName = "ruleEngineService" + modelClassName;
 
@@ -41,10 +40,8 @@ public class ControllerUpdater {
             modelClassName, serviceInstanceName, modelParamName
         );
 
-        // 5. Insert endpoint code
         lines.add(insertPosition, endpoint);
 
-        // 6. Write updated file back
         Files.write(controllerFilePath, lines);
 
         System.out.println("✅ @PostMapping('/evaluate-rule') added successfully for model: " + modelClassName);
