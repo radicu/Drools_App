@@ -7,7 +7,7 @@ import json
 
 app = Flask(__name__)
 
-SPRING_BOOT_URL_RULE_ENGINE = "https://1047-60-250-53-42.ngrok-free.app/evaluate-rule"  # Local
+SPRING_BOOT_URL_RULE_ENGINE = "https://9629-60-250-53-42.ngrok-free.app/evaluate-rule"  # Local
 
 mqtt_data = {
     f"spindle{i}": {
@@ -31,48 +31,54 @@ def on_message(client, userdata, msg):
     try:
         data = json.loads(payload)
 
-    
-        for i in range(1, 7):
-            prefix = f"spindle{i}/"
-            if topic.startswith(prefix):
-                subtopic = topic.replace(prefix, "")
+        if topic == "TableCurrent":
+            x_axil = data.get("X_Axil")
+            y_axil = data.get("Y_Axil")
 
-                if subtopic == "1X":
-                    mqtt_data[f"spindle{i}"]["ANC"] = data.get("max_mag")
-                elif subtopic == "2X":
-                    mqtt_data[f"spindle{i}"]["BWO"] = data.get("max_mag")
-                elif subtopic == "3X":
-                    mqtt_data[f"spindle{i}"]["SS"] = data.get("max_mag")
-                elif subtopic == "0.35X-0.45X":
-                    mqtt_data[f"spindle{i}"]["NCS"] = data.get("max_mag")
-                elif subtopic == "TableCurrent":
-                    mqtt_data[f"spindle{i}"]["yTableCurrent"] = data.get("Y_Axil")
-                    mqtt_data[f"spindle{i}"]["xTableCurrent"] = data.get("X_Axil")
+            # Set x/yTableCurrent for ALL spindles
+            for i in range(1, 7):
+                mqtt_data[f"spindle{i}"]["xTableCurrent"] = x_axil
+                mqtt_data[f"spindle{i}"]["yTableCurrent"] = y_axil
 
-                break  # no need to check other spindles
+        else:
+            # Handle spindle1/1X, spindle2/2X, etc.
+            for i in range(1, 7):
+                prefix = f"spindle{i}/"
+                if topic.startswith(prefix):
+                    subtopic = topic.replace(prefix, "")
+
+                    if subtopic == "1X":
+                        mqtt_data[f"spindle{i}"]["ANC"] = data.get("max_mag")
+                    elif subtopic == "2X":
+                        mqtt_data[f"spindle{i}"]["BWO"] = data.get("max_mag")
+                    elif subtopic == "3X":
+                        mqtt_data[f"spindle{i}"]["SS"] = data.get("max_mag")
+                    elif subtopic == "0.35X-0.45X":
+                        mqtt_data[f"spindle{i}"]["NCS"] = data.get("max_mag")
+                    break  # Stop once matched
 
     except json.JSONDecodeError as e:
         print(f"Failed to decode JSON: {e}")
 
+
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
         print("Connected successfully!")
-        topics = []
+        topics = ["TableCurrent"]  
 
         for i in range(1, 7):
             topics.extend([
                 f"spindle{i}/1X",
                 f"spindle{i}/2X",
                 f"spindle{i}/3X",
-                f"spindle{i}/0.35X-0.45X",
-                f"spindle{i}/yTableCurrent",
-                f"spindle{i}/xTableCurrent"
+                f"spindle{i}/0.35X-0.45X"
             ])
 
         for topic in topics:
             client.subscribe(topic)
     else:
         print(f"Connection failed with code {rc}")
+
 
 
 def start_mqtt_client():
