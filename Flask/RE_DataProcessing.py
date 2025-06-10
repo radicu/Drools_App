@@ -12,6 +12,7 @@ SPRING_BOOT_URL_RULE_ENGINE = "http://localhost:8080/evaluate-rule"  # Local
 mqtt_data = {
     f"spindle{i}": {
         "yTableCurrent": None,
+        "xTableCurrent": None,
         "ANC": None,
         "BWO": None,
         "SS": None,
@@ -44,8 +45,10 @@ def on_message(client, userdata, msg):
                     mqtt_data[f"spindle{i}"]["SS"] = data.get("max_mag")
                 elif subtopic == "0.35X-0.45X":
                     mqtt_data[f"spindle{i}"]["NCS"] = data.get("max_mag")
-                elif subtopic == "yTableCurrent":
-                    mqtt_data[f"spindle{i}"]["yTableCurrent"] = data.get("Y_Axil")  # assuming structure matches
+                elif subtopic == "TableCurrent":
+                    mqtt_data[f"spindle{i}"]["yTableCurrent"] = data.get("Y_Axil")
+                    mqtt_data[f"spindle{i}"]["xTableCurrent"] = data.get("X_Axil")
+
                 break  # no need to check other spindles
 
     except json.JSONDecodeError as e:
@@ -62,7 +65,8 @@ def on_connect(client, userdata, flags, rc):
                 f"spindle{i}/2X",
                 f"spindle{i}/3X",
                 f"spindle{i}/0.35X-0.45X",
-                f"spindle{i}/yTableCurrent"  # optional if published
+                f"spindle{i}/yTableCurrent",
+                f"spindle{i}/xTableCurrent"
             ])
 
         for topic in topics:
@@ -99,7 +103,7 @@ def start_mqtt_client():
     client.loop_start()  # Start loop in a separate thread
 
 # Function to send a rule to the endpoint
-def send_rule_to_endpoint(rule_data, endpoint_url):
+def send_to_reasoning_endpoint(rule_data, endpoint_url):
     payload = {k: v for k, v in rule_data.items() if k != 'rule'}
     try:
         response = requests.post(endpoint_url, json=payload)
@@ -121,18 +125,36 @@ def send_rule_to_endpoint(rule_data, endpoint_url):
 
 @app.route('/run-rule-engine', methods=['GET'])
 def reasoning():
-
-    payload = {
-        "xTableCurrent": mqtt_data.get("xTableCurrent"),
-        "yTableCurrent": mqtt_data.get("yTableCurrent"),
-        "Spindle Frequency": mqtt_data.get("ANC"),
-        "Bits Wear Out": mqtt_data.get("BWO"),
-        "Spindle Stiffness": mqtt_data.get("SS"),
-        "Bits Change Signal": mqtt_data.get("NCS")
+    response = {
+        "spindle": []
     }
-    print("Sending payload:", payload)
-    result = send_rule_to_endpoint(payload, SPRING_BOOT_URL_RULE_ENGINE)
-    return result.get('returned_state', '')
+
+    for i in range(1, 7):
+        spindle_key = f"spindle{i}"
+        spindle_data = mqtt_data[spindle_key]
+
+        # Build payload for this spindle only
+        payload = {
+            "spindleId": f"Spindle{i}",
+            "yTableCurrent": spindle_data.get("yTableCurrent") if spindle_data.get("yTableCurrent") is not None else "no_data",
+            "xTableCurrent": spindle_data.get("xTableCurrent") if spindle_data.get("xTableCurrent") is not None else "no_data",
+            "anc": spindle_data.get("ANC") if spindle_data.get("ANC") is not None else "no_data",
+            "bwo": spindle_data.get("BWO") if spindle_data.get("BWO") is not None else "no_data",
+            "ss": spindle_data.get("SS") if spindle_data.get("SS") is not None else "no_data",
+            "ncs": spindle_data.get("NCS") if spindle_data.get("NCS") is not None else "no_data"
+        }
+
+        # Send this payload to the Spring Boot endpoint
+        result = send_to_reasoning_endpoint(payload, SPRING_BOOT_URL_RULE_ENGINE)
+
+        # Append result summary for this spindle
+        response["spindle"].append({
+            "spindle_id": payload["spindle_id"],
+            "returned_state": result.get("returned_state", "no_response")
+        })
+
+    return jsonify(response)
+
 
 
 @app.route('/get-mqtt', methods=['GET'])
@@ -146,12 +168,13 @@ def get_data():
         spindle_data = mqtt_data[spindle_key]
 
         response["spindle"].append({
-            "spindle_id": f"Spindle{i}",
+            "spindleId": f"Spindle{i}",
             "yTableCurrent": spindle_data.get("yTableCurrent") if spindle_data.get("yTableCurrent") is not None else "no_data",
-            "Spindle Frequency": spindle_data.get("ANC") if spindle_data.get("ANC") is not None else "no_data",
-            "Bits Wear Out": spindle_data.get("BWO") if spindle_data.get("BWO") is not None else "no_data",
-            "Spindle Stiffness": spindle_data.get("SS") if spindle_data.get("SS") is not None else "no_data",
-            "Bits Change Signal": spindle_data.get("NCS") if spindle_data.get("NCS") is not None else "no_data"
+            "xTableCurrent": spindle_data.get("xTableCurrent") if spindle_data.get("xTableCurrent") is not None else "no_data",
+            "anc": spindle_data.get("ANC") if spindle_data.get("ANC") is not None else "no_data",
+            "bwo": spindle_data.get("BWO") if spindle_data.get("BWO") is not None else "no_data",
+            "ss": spindle_data.get("SS") if spindle_data.get("SS") is not None else "no_data",
+            "ncs": spindle_data.get("NCS") if spindle_data.get("NCS") is not None else "no_data"
         })
 
     return jsonify(response)
