@@ -7,7 +7,7 @@ import json
 
 app = Flask(__name__)
 
-SPRING_BOOT_URL_RULE_ENGINE = "http://localhost:8080/evaluate-rule"  # Local
+SPRING_BOOT_URL_RULE_ENGINE = "https://1047-60-250-53-42.ngrok-free.app/evaluate-rule"  # Local
 
 mqtt_data = {
     f"spindle{i}": {
