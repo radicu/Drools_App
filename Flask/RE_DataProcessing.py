@@ -3,7 +3,6 @@ import time
 import threading
 from flask import Flask, jsonify
 import paho.mqtt.client as mqtt
-# from influxdb_client import InfluxDBClient
 import json
 
 app = Flask(__name__)
@@ -19,78 +18,6 @@ mqtt_data = {
 }
 
 
-# def Exec_Influx(url, token, org, query):
-#     client = InfluxDBClient(url=url, token=token, org=org)
-#     result = client.query_api().query(org=org, query=query)
-
-#     return result
-
-# def fetch_and_append_results(url, token, org, queries):
-#     output = []
-
-#     def append_results(result):
-#         for table in result:
-#             for record in table.records:
-#                 output.append(record.get_value())
-
-#     for query in queries:
-#         result = Exec_Influx(url, token, org, query)
-#         append_results(result)
-
-#     return output
-
-# def get_XY_Axis():
-#     # ------------------ CONFIG -------------------
-#     url = "http://110.25.101.191:8152"  # for X & Y axis (AI2)
-#     token = "Y1WTN4GKMW_-iZvdGUu9kIZjeyEosIjnz0TKhpqgBwJSxuV-pphsqpDRXRmsYGbSz0GenMR6lkwtP7EjIHrA2w=="
-#     org = "MTS"  # Replace with your actual org name
-#     bucket_XYaxis = "Table_Current_from_DAQ"
-#     bucket_SpindlePS = "spindle_physical_signal"
-#     # ---------------------------------------------
-
-#     #夾針異常/Abnormal Needle Clamping
-#     query_ANC = f'''
-#     from(bucket: "{bucket_SpindlePS}")
-#     |> range(start: -1h)
-#     |> filter(fn: (r) => r["_measurement"] == "ND61")
-#     |> filter(fn: (r) => r["channel"] == "spindle1")
-#     |> filter(fn: (r) => r["frequency_range"] == "1X")
-#     |> filter(fn: (r) => r["_field"] == "max_mag")
-#     |> last()
-#     '''
-
-#     queries = query_ANC
-#     output = fetch_and_append_results(url, token, org, queries)
-
-#     return output
-
-# def get_Z_Axis():
-#     # ------------------ CONFIG -------------------
-#     url = "http://110.25.101.191:7864/"  # for X & Y axis (AI2)
-#     token = "UzY7nTlbdyhzpT9ky4gkODDUkk2_MmiibfJmYuayTqM9Cvw2mJYe25htNGP0w-jDdoAW6I03uZdGnq5T4qX-0g=="
-#     org = "MTS"  # Replace with your actual org name
-#     bucket = "MTL Spidle"
-#     # ---------------------------------------------
-
-
-#     # Replace Grafana variables with fixed values
-#     query = f'''
-#     from(bucket: "{bucket}")
-#     |> range(start: -1h)
-#     |> filter(fn: (r) => r["_measurement"] == "ND61")
-#     |> filter(fn: (r) => r["datatype"] == "current")
-#     |> filter(fn: (r) => r["_field"] == "spindle2")
-#     |> last()
-#     '''
-
-#     result = Exec_Influx(url, token, org, query)
-
-#     # Print results
-#     for table in result:
-#         for record in table.records:
-#             output = record.get_value()
-
-#     return output
 
 # MQTT Callbacks
 def on_message(client, userdata, msg):
