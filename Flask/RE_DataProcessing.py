@@ -10,11 +10,14 @@ app = Flask(__name__)
 SPRING_BOOT_URL_RULE_ENGINE = "http://localhost:8080/evaluate-rule"  # Local
 
 mqtt_data = {
-    "xTableCurrent": None,
-    "yTableCurrent": None,
-    "ANC": None,
-    "BWO": None,
-    "NCS": None
+    f"spindle{i}": {
+        "yTableCurrent": None,
+        "ANC": None,
+        "BWO": None,
+        "SS": None,
+        "NCS": None
+    }
+    for i in range(1, 7)
 }
 
 
@@ -27,45 +30,23 @@ def on_message(client, userdata, msg):
     try:
         data = json.loads(payload)
 
-        if topic == "TableCurrent":
-            x_axil = data.get("X_Axil")
-            y_axil = data.get("Y_Axil")
-            print(f"TableCurrent - X_Axil: {x_axil}, Y_Axil: {y_axil}")
+    
+        for i in range(1, 7):
+            prefix = f"spindle{i}/"
+            if topic.startswith(prefix):
+                subtopic = topic.replace(prefix, "")
 
-            # Save to global mqtt_data
-            mqtt_data["xTableCurrent"] = x_axil
-            mqtt_data["yTableCurrent"] = y_axil
-
-
-        elif topic == "spindle1/1X":
-            max_mag = data.get("max_mag")
-            # timestamp = data.get("timestamp")
-            # print(f"Spindle Frequency - Max Mag: {max_mag},  Timestamp: {timestamp}")
-
-            # Save to global mqtt_data
-            mqtt_data["ANC"] = max_mag
-
-        elif topic == "spindle1/2X":
-            max_mag = data.get("max_mag")
-            # timestamp = data.get("timestamp")
-            # print(f"Bits Wear-out - Max Mag: {max_mag}, Timestamp: {timestamp}")
-            mqtt_data["BWO"] = max_mag
-
-        elif topic == "spindle1/3X":
-            max_mag = data.get("max_mag")
-            # timestamp = data.get("timestamp")
-            # print(f"Spindle Stiffness - Max Mag: {max_mag}, Timestamp: {timestamp}")
-            mqtt_data["SS"] = max_mag
-
-        elif topic == "spindle1/0.35X-0.45X":
-            max_mag = data.get("max_mag")
-            # timestamp = data.get("timestamp")
-            # print(f"Change Bit Signal - Max Mag: {max_mag}, Timestamp: {timestamp}")
-            mqtt_data["NCS"] = max_mag
-
-        #No spindle Current yet
-
-            
+                if subtopic == "1X":
+                    mqtt_data[f"spindle{i}"]["ANC"] = data.get("max_mag")
+                elif subtopic == "2X":
+                    mqtt_data[f"spindle{i}"]["BWO"] = data.get("max_mag")
+                elif subtopic == "3X":
+                    mqtt_data[f"spindle{i}"]["SS"] = data.get("max_mag")
+                elif subtopic == "0.35X-0.45X":
+                    mqtt_data[f"spindle{i}"]["NCS"] = data.get("max_mag")
+                elif subtopic == "yTableCurrent":
+                    mqtt_data[f"spindle{i}"]["yTableCurrent"] = data.get("Y_Axil")  # assuming structure matches
+                break  # no need to check other spindles
 
     except json.JSONDecodeError as e:
         print(f"Failed to decode JSON: {e}")
@@ -73,17 +54,22 @@ def on_message(client, userdata, msg):
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
         print("Connected successfully!")
-        topics = [
-            "TableCurrent",     #topic for TableCurrent
-            "spindle1/1X",       #topic for spindle1/1X
-            "spindle1/2X" ,      #topic for spindle1/2X
-            "spindle1/3X"  ,     #topic for spindle1/3X
-            "spindle1/0.35X-0.45X" #topic for spindle1//0.35X-0.45X
-        ]
+        topics = []
+
+        for i in range(1, 7):
+            topics.extend([
+                f"spindle{i}/1X",
+                f"spindle{i}/2X",
+                f"spindle{i}/3X",
+                f"spindle{i}/0.35X-0.45X",
+                f"spindle{i}/yTableCurrent"  # optional if published
+            ])
+
         for topic in topics:
             client.subscribe(topic)
     else:
         print(f"Connection failed with code {rc}")
+
 
 def start_mqtt_client():
     client = mqtt.Client()
@@ -151,20 +137,26 @@ def reasoning():
 
 @app.route('/get-mqtt', methods=['GET'])
 def get_data():
-     # Read latest MQTT data
-
-
-
-   payload = {
-        "xTableCurrent": mqtt_data.get("xTableCurrent"),
-        "yTableCurrent": mqtt_data.get("yTableCurrent"),
-        "Spindle Frequency": mqtt_data.get("ANC"),
-        "Bits Wear Out": mqtt_data.get("BWO"),
-        "Spindle Stiffness": mqtt_data.get("SS"),
-        "Bits Change Signal": mqtt_data.get("NCS")
+    response = {
+        "spindle": []
     }
-   
-   return jsonify(payload)
+
+    for i in range(1, 7):
+        spindle_key = f"spindle{i}"
+        spindle_data = mqtt_data[spindle_key]
+
+        response["spindle"].append({
+            "spindle_id": f"Spindle{i}",
+            "yTableCurrent": spindle_data.get("yTableCurrent") if spindle_data.get("yTableCurrent") is not None else "no_data",
+            "Spindle Frequency": spindle_data.get("ANC") if spindle_data.get("ANC") is not None else "no_data",
+            "Bits Wear Out": spindle_data.get("BWO") if spindle_data.get("BWO") is not None else "no_data",
+            "Spindle Stiffness": spindle_data.get("SS") if spindle_data.get("SS") is not None else "no_data",
+            "Bits Change Signal": spindle_data.get("NCS") if spindle_data.get("NCS") is not None else "no_data"
+        })
+
+    return jsonify(response)
+
+
 
 if __name__ == "__main__":
     # Start MQTT client in background
