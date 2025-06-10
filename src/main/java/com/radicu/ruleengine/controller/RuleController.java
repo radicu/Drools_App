@@ -139,13 +139,12 @@ public class RuleController {
         }
 
 
+
     @PostMapping("/evaluate-rule")
     public ResponseEntity<Variable> evaluateRule(@RequestBody Variable variable) {
         Variable result = ruleEngineServiceVariable.runRules(variable);
         return ResponseEntity.ok(result);
     }
-
-
 
 
 }
