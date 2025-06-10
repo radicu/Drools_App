@@ -1,0 +1,5 @@
+launch4j: Compiling resources
+launch4j: Linking
+launch4j: Wrapping
+WARNING: Sign the executable to minimize antivirus false positives or use launching instead of wrapping.
+launch4j: Successfully created E:\radika\MTS\Experiment\Edge_AI\Drools_App\dist\RuleEngine.exe

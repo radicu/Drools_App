@@ -18,3 +18,23 @@ Launcher:	C:\Program Files\Java\jdk-17\bin\javaw.exe
 Launcher args:	-jar "E:\radika\MTS\Experiment\Edge_AI\Drools_App\dist\RuleEngine.exe"
 Args length:	70/32768 chars
 Exit code:	0
+
+
+Version:	3.50
+CmdLine:	E:\radika\MTS\Experiment\Edge_AI\Drools_App\dist\RuleEngine.exe --l4j-debug
+JNI:		No
+WOW64:		Yes
+Working dir:	E:\radika\MTS\Experiment\Edge_AI\Drools_App\dist\.
+Requires JDK:	No
+Requires 64-Bit: No
+Java min ver:	
+Java max ver:	
+Substitute:	JAVA_HOME = C:\Program Files\Java\jdk-17
+Substitute:	PATH = C:\Program Files\Common Files\Oracle\Java\javapath;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files\Go\bin;C:\Program Files\dotnet\;C:\Program Files\Amazon\AWSCLIV2\;C:\Program Files\Docker\Docker\resources\bin;C:\Program Files\Git\cmd;C:\Program Files\doctl\;C:\Program Files\NVIDIA Corporation\NVIDIA NvDLISR;C:\Program Files (x86)\CODESYS\APInstaller\;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\nodejs\;C:\Program Files (x86)\Graphviz\bin;C:\Program Files\Graphviz\bin;E:\radika\MTS\Software\Protege\Protege-5.6.5-win\Graphviz\bin;E:\radika\MTS\Software\Protege\Protege-5.6.5-win\Protege-5.6.5\Graphviz\bin;C:\Program Files\Java\jdk-17\bin;C:\Program Files\Java\jdk-17;C:\Users\radik\AppData\Local\Microsoft\WindowsApps;C:\Users\radik\go\bin;C:\Users\radik\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\radik\miniconda3\Library\bin;C:\Windows\System32\doctl-1.110.0-windows-amd64;C:\Users\radik\.dotnet\tools;C:\Users\radik\AppData\Roaming\npm;C:\Program Files (x86)\mingw64\bin;C:\Program Files\Apache\Maven\maven-mvnd-1.0.2-windows-amd64\bin;C:\Program Files\Apache\Maven\apache-maven-3.9.9\bin;C:\Program Files\Java\jdk-17\bin;;C:\Program Files\Java\jdk-17\bin
+JRE paths:	C:\Program Files\Java\jdk-17;C:\Program Files\Common Files\Oracle\Java\javapath;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files\Go\bin;C:\Program Files\dotnet\;C:\Program Files\Amazon\AWSCLIV2\;C:\Program Files\Docker\Docker\resources\bin;C:\Program Files\Git\cmd;C:\Program Files\doctl\;C:\Program Files\NVIDIA Corporation\NVIDIA NvDLISR;C:\Program Files (x86)\CODESYS\APInstaller\;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\nodejs\;C:\Program Files (x86)\Graphviz\bin;C:\Program Files\Graphviz\bin;E:\radika\MTS\Software\Protege\Protege-5.6.5-win\Graphviz\bin;E:\radika\MTS\Software\Protege\Protege-5.6.5-win\Protege-5.6.5\Graphviz\bin;C:\Program Files\Java\jdk-17\bin;C:\Program Files\Java\jdk-17;C:\Users\radik\AppData\Local\Microsoft\WindowsApps;C:\Users\radik\go\bin;C:\Users\radik\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\radik\miniconda3\Library\bin;C:\Windows\System32\doctl-1.110.0-windows-amd64;C:\Users\radik\.dotnet\tools;C:\Users\radik\AppData\Roaming\npm;C:\Program Files (x86)\mingw64\bin;C:\Program Files\Apache\Maven\maven-mvnd-1.0.2-windows-amd64\bin;C:\Program Files\Apache\Maven\apache-maven-3.9.9\bin;C:\Program Files\Java\jdk-17\bin;;C:\Program Files\Java\jdk-17\bin
+Check launcher:	C:\Program Files\Java\jdk-17\bin\javaw.exe (OK)
+Version string: 1.017.000_012 / 64-Bit (OK)
+Launcher:	C:\Program Files\Java\jdk-17\bin\javaw.exe
+Launcher args:	-jar "E:\radika\MTS\Experiment\Edge_AI\Drools_App\dist\RuleEngine.exe"
+Args length:	70/32768 chars
+Exit code:	0
