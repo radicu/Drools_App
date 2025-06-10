@@ -155,7 +155,7 @@ def reasoning():
 
         # Append result summary for this spindle
         response["spindle"].append({
-            "spindle_id": payload["spindle_id"],
+            "spindleId": payload["spindleId"],
             "returned_state": result.get("returned_state", "no_response")
         })
 
