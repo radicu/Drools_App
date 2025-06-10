@@ -1,4 +1,4 @@
 # Ignore large build files
-Flask/build/
-Flask/dist/
-git add .gitignore
+# Flask/build/
+# Flask/dist/
+# git add .gitignore
