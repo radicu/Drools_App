@@ -11,13 +11,18 @@ public class Variable {
     private String state;
     private float alarmLimit2;
     private float drillingCondition3;
+    private float ncs;
+    private float ss;
     private String krpm;
     private String drilling_condition;
     private float spindleCurrent;
     private float drillingCondition2;
     private String spindle_current;
     private float xTableCurrent;
+    private String spindleId;
     private float yTableCurrent;
+    private float bwo;
+    private float anc;
     private float rpm;
     private String spindle;
     private float alarmLimit3200;
@@ -68,6 +73,24 @@ public class Variable {
 
     public void setDrillingCondition3(float drillingCondition3) {
         this.drillingCondition3 = drillingCondition3;
+    }
+
+    @JsonProperty("ncs")
+    public float getNcs() {
+        return ncs;
+    }
+
+    public void setNcs(float ncs) {
+        this.ncs = ncs;
+    }
+
+    @JsonProperty("ss")
+    public float getSs() {
+        return ss;
+    }
+
+    public void setSs(float ss) {
+        this.ss = ss;
     }
 
     @JsonProperty("krpm")
@@ -124,6 +147,15 @@ public class Variable {
         this.xTableCurrent = xTableCurrent;
     }
 
+    @JsonProperty("spindleId")
+    public String getSpindleId() {
+        return spindleId;
+    }
+
+    public void setSpindleId(String spindleId) {
+        this.spindleId = spindleId;
+    }
+
     @JsonProperty("yTableCurrent")
     public float getYTableCurrent() {
         return yTableCurrent;
@@ -131,6 +163,24 @@ public class Variable {
 
     public void setYTableCurrent(float yTableCurrent) {
         this.yTableCurrent = yTableCurrent;
+    }
+
+    @JsonProperty("bwo")
+    public float getBwo() {
+        return bwo;
+    }
+
+    public void setBwo(float bwo) {
+        this.bwo = bwo;
+    }
+
+    @JsonProperty("anc")
+    public float getAnc() {
+        return anc;
+    }
+
+    public void setAnc(float anc) {
+        this.anc = anc;
     }
 
     @JsonProperty("rpm")

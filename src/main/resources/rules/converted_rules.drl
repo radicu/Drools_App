@@ -2,6 +2,22 @@ package rules;
 
 import com.radicu.ruleengine.model.Variable;
 
+rule "R006"
+    salience 50
+when
+    $fact : Variable(anc < 1000, ss < 100)
+then
+    $fact.setState("Machine idle");
+end
+
+rule "R005"
+    salience 50
+when
+    $fact : Variable(anc < 8000, ss < 300, xTableCurrent > 1, yTableCurrent > 1)
+then
+    $fact.setState("In Cycle");
+end
+
 rule "R004"
     salience 1
 when
