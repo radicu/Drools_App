@@ -51,13 +51,13 @@ def on_message(client, userdata, msg):
             # print(f"Bits Wear-out - Max Mag: {max_mag}, Timestamp: {timestamp}")
             mqtt_data["BWO"] = max_mag
 
-        elif topic == "spindle1/3x":
+        elif topic == "spindle1/3X":
             max_mag = data.get("max_mag")
             # timestamp = data.get("timestamp")
             # print(f"Spindle Stiffness - Max Mag: {max_mag}, Timestamp: {timestamp}")
             mqtt_data["SS"] = max_mag
 
-        elif topic == "spindle/0.35X-0.45X":
+        elif topic == "spindle1/0.35X-0.45X":
             max_mag = data.get("max_mag")
             # timestamp = data.get("timestamp")
             # print(f"Change Bit Signal - Max Mag: {max_mag}, Timestamp: {timestamp}")
@@ -74,10 +74,10 @@ def on_connect(client, userdata, flags, rc):
     if rc == 0:
         print("Connected successfully!")
         topics = [
-            "TableCurrent"     #topic for TableCurrent
-            "spindle1/1X"       #topic for spindle1/1X
-            "spindle1/2X"       #topic for spindle1/2X
-            "spindle1/3X"       #topic for spindle1/3X
+            "TableCurrent",     #topic for TableCurrent
+            "spindle1/1X",       #topic for spindle1/1X
+            "spindle1/2X" ,      #topic for spindle1/2X
+            "spindle1/3X"  ,     #topic for spindle1/3X
             "spindle1/0.35X-0.45X" #topic for spindle1//0.35X-0.45X
         ]
         for topic in topics:
