@@ -184,6 +184,9 @@ def reasoning():
             "ncs": spindle_data.get("NCS") if spindle_data.get("NCS") is not None else "no_data"
         }
 
+        print(abs(spindle_data["yTableCurrentmax"]) if spindle_data.get("yTableCurrentmax") is not None else "no_data")
+        print(abs(spindle_data["xTableCurrentmax"]) if spindle_data.get("xTableCurrentmax") is not None else "no_data")
+
         # Send this payload to the Spring Boot endpoint
         result = send_to_reasoning_endpoint(payload, SPRING_BOOT_URL_RULE_ENGINE)
 
