@@ -21,7 +21,7 @@ end
 rule "R005"
     salience 50
 when
-    $fact : Variable(bwo > 300, xTableCurrentMax > 2, yTableCurrentMax > 2)
+    $fact : Variable(bwo > 300, xTableCurrentMax > 6, yTableCurrentMax > 6)
 then
     $fact.setState("In Cycle");
 end

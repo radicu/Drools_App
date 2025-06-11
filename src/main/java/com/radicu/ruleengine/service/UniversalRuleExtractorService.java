@@ -118,6 +118,9 @@ public class UniversalRuleExtractorService {
             String cleanedCondition = conditionLiteral.replaceAll("\\?", "").trim();
             String[] conditionParts = cleanedCondition.split("&&");
 
+            // 👉 Detect if the entire condition contains OR logic
+            boolean containsOr = cleanedCondition.contains("||");
+
             StringBuilder conditionBuilder = new StringBuilder();
             conditionBuilder.append("$fact : Variable(");
 
@@ -131,7 +134,6 @@ public class UniversalRuleExtractorService {
                 Matcher matcher = pattern.matcher(cond);
 
                 if (matcher.find()) {
-                    // Comparison condition
                     String leftField = matcher.group(1).trim();
                     String operator = matcher.group(2).trim();
                     String rightValue = matcher.group(3).trim();
@@ -152,14 +154,13 @@ public class UniversalRuleExtractorService {
                     }
 
                     if (!first) {
-                        conditionBuilder.append(", ");
+                        conditionBuilder.append(containsOr ? " && " : ", ");
                     }
                     conditionBuilder.append(updatedCond);
                     first = false;
                 } else {
-                    // Bare field (assume > 0.0 check)
-                    String fieldName = cond;
-                    String normalizedField = normalizeFieldName(fieldName);
+                    // Bare variable condition (e.g., AlarmFlag -> AlarmFlag > 0.0)
+                    String normalizedField = normalizeFieldName(cond);
 
                     if (!usedFields.contains(normalizedField)) {
                         usedFields.add(normalizedField);
@@ -167,7 +168,7 @@ public class UniversalRuleExtractorService {
                         String updatedCond = normalizedField + " > 0.0";
 
                         if (!first) {
-                            conditionBuilder.append(", ");
+                            conditionBuilder.append(containsOr ? " && " : ", ");
                         }
                         conditionBuilder.append(updatedCond);
                         first = false;
@@ -184,6 +185,7 @@ public class UniversalRuleExtractorService {
 
         return conditions;
     }
+
 
 
 
