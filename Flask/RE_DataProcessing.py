@@ -142,8 +142,8 @@ def reasoning():
         # Build payload for this spindle only
         payload = {
             "spindleId": f"Spindle{i}",
-            "yTableCurrent": spindle_data.get("yTableCurrent") if spindle_data.get("yTableCurrent") is not None else "no_data",
-            "xTableCurrent": spindle_data.get("xTableCurrent") if spindle_data.get("xTableCurrent") is not None else "no_data",
+            "yTableCurrent": abs(spindle_data["yTableCurrent"]) if spindle_data.get("yTableCurrent") is not None else "no_data",
+            "xTableCurrent": abs(spindle_data["xTableCurrent"]) if spindle_data.get("xTableCurrent") is not None else "no_data",
             "anc": spindle_data.get("ANC") if spindle_data.get("ANC") is not None else "no_data",
             "bwo": spindle_data.get("BWO") if spindle_data.get("BWO") is not None else "no_data",
             "ss": spindle_data.get("SS") if spindle_data.get("SS") is not None else "no_data",
