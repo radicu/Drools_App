@@ -10,16 +10,25 @@ app = Flask(__name__)
 SPRING_BOOT_URL_RULE_ENGINE = "http://localhost:8080/evaluate-rule"  # Local
 
 mqtt_data = {
-    f"spindle{i}": {
-        "yTableCurrent": None,
-        "xTableCurrent": None,
-        "ANC": None,
-        "BWO": None,
-        "SS": None,
-        "NCS": None
+    "read_counter": 0,
+    "xTableCurrent": None,
+    "yTableCurrent": None,
+    "xTableCurrentmax": None,
+    "yTableCurrentmax": None,
+    **{
+        f"spindle{i}": {
+            "ANC": None,
+            "BWO": None,
+            "SS": None,
+            "NCS": None,
+            "xTableCurrent": None,
+            "yTableCurrent": None,
+            "xTableCurrentmax": None,
+            "yTableCurrentmax": None
+        } for i in range(1, 7)
     }
-    for i in range(1, 7)
 }
+
 
 
 
@@ -34,11 +43,37 @@ def on_message(client, userdata, msg):
         if topic == "TableCurrent":
             x_axil = data.get("X_Axil")
             y_axil = data.get("Y_Axil")
+            print(f"TableCurrent - X_Axil: {x_axil}, Y_Axil: {y_axil}")
 
-            # Set x/yTableCurrent for ALL spindles
+            # Update base values
+            mqtt_data["xTableCurrent"] = x_axil
+            mqtt_data["yTableCurrent"] = y_axil
+
+            # Initialize max if None
+            if mqtt_data["xTableCurrentmax"] is None:
+                mqtt_data["xTableCurrentmax"] = x_axil
+            if mqtt_data["yTableCurrentmax"] is None:
+                mqtt_data["yTableCurrentmax"] = y_axil
+
+            # Update max values
+            if abs(x_axil) > abs(mqtt_data["xTableCurrentmax"]):
+                mqtt_data["xTableCurrentmax"] = x_axil
+            if abs(y_axil) > abs(mqtt_data["yTableCurrentmax"]):
+                mqtt_data["yTableCurrentmax"] = y_axil
+
+            # Increment and reset counter if needed
+            mqtt_data["read_counter"] += 1
+            if mqtt_data["read_counter"] >= 10:
+                mqtt_data["read_counter"] = 0
+                mqtt_data["xTableCurrentmax"] = x_axil
+                mqtt_data["yTableCurrentmax"] = y_axil
+
+            # Copy to all spindles
             for i in range(1, 7):
                 mqtt_data[f"spindle{i}"]["xTableCurrent"] = x_axil
                 mqtt_data[f"spindle{i}"]["yTableCurrent"] = y_axil
+                mqtt_data[f"spindle{i}"]["xTableCurrentmax"] = mqtt_data["xTableCurrentmax"]
+                mqtt_data[f"spindle{i}"]["yTableCurrentmax"] = mqtt_data["yTableCurrentmax"]
 
         else:
             # Handle spindle1/1X, spindle2/2X, etc.
@@ -142,8 +177,8 @@ def reasoning():
         # Build payload for this spindle only
         payload = {
             "spindleId": f"Spindle{i}",
-            "yTableCurrent": abs(spindle_data["yTableCurrent"]) if spindle_data.get("yTableCurrent") is not None else "no_data",
-            "xTableCurrent": abs(spindle_data["xTableCurrent"]) if spindle_data.get("xTableCurrent") is not None else "no_data",
+            "yTableCurrentmax": abs(spindle_data["yTableCurrentmax"]) if spindle_data.get("yTableCurrentmax") is not None else "no_data",
+            "xTableCurrentmax": abs(spindle_data["xTableCurrentmax"]) if spindle_data.get("xTableCurrentmax") is not None else "no_data",
             "anc": spindle_data.get("ANC") if spindle_data.get("ANC") is not None else "no_data",
             "bwo": spindle_data.get("BWO") if spindle_data.get("BWO") is not None else "no_data",
             "ss": spindle_data.get("SS") if spindle_data.get("SS") is not None else "no_data",

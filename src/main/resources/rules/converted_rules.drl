@@ -3,9 +3,9 @@ package rules;
 import com.radicu.ruleengine.model.Variable;
 
 rule "R007"
-    salience 50
+    salience 2
 when
-    $fact : Variable(ncs > 1000, xTableCurrent > 2, yTableCurrent > 2)
+    $fact : Variable(ncs > 1000, xTableCurrentMax > 6, yTableCurrentMax > 6)
 then
     $fact.setState("Change Bits");
 end
@@ -13,7 +13,7 @@ end
 rule "R006"
     salience 50
 when
-    $fact : Variable(anc < 300, ss < 100, xTableCurrent < 2, yTableCurrent < 2)
+    $fact : Variable(anc < 300, xTableCurrentMax < 6, yTableCurrentMax < 6)
 then
     $fact.setState("Machine idle");
 end
@@ -21,7 +21,7 @@ end
 rule "R005"
     salience 50
 when
-    $fact : Variable(xTableCurrent > 2, yTableCurrent > 2)
+    $fact : Variable(anc > 300, ss > 120, xTableCurrentMax > 6, yTableCurrentMax > 6)
 then
     $fact.setState("In Cycle");
 end
