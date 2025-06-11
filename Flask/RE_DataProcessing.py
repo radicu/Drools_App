@@ -43,7 +43,6 @@ def on_message(client, userdata, msg):
         if topic == "TableCurrent":
             x_axil = data.get("X_Axil")
             y_axil = data.get("Y_Axil")
-            print(f"TableCurrent - X_Axil: {x_axil}, Y_Axil: {y_axil}")
 
             # Update base values
             mqtt_data["xTableCurrent"] = x_axil
