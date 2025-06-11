@@ -13,7 +13,7 @@ end
 rule "R006"
     salience 50
 when
-    $fact : Variable(bwo < 200, xTableCurrentMax < 6, yTableCurrentMax < 6)
+    $fact : Variable(bwo < 200, xTableCurrentMax < 2, yTableCurrentMax < 2)
 then
     $fact.setState("Machine idle");
 end
@@ -21,7 +21,7 @@ end
 rule "R005"
     salience 50
 when
-    $fact : Variable(bwo > 200, xTableCurrentMax > 6, yTableCurrentMax > 6)
+    $fact : Variable(bwo > 200, xTableCurrentMax > 2, yTableCurrentMax > 2)
 then
     $fact.setState("In Cycle");
 end
