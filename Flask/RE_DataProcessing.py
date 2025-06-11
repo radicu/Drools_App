@@ -13,8 +13,8 @@ mqtt_data = {
     "read_counter": 0,
     "xTableCurrent": None,
     "yTableCurrent": None,
-    "xTableCurrentmax": None,
-    "yTableCurrentmax": None,
+    "xTableCurrentMax": None,
+    "yTableCurrentMax": None,
     **{
         f"spindle{i}": {
             "ANC": None,
@@ -23,8 +23,8 @@ mqtt_data = {
             "NCS": None,
             "xTableCurrent": None,
             "yTableCurrent": None,
-            "xTableCurrentmax": None,
-            "yTableCurrentmax": None
+            "xTableCurrentMax": None,
+            "yTableCurrentMax": None
         } for i in range(1, 7)
     }
 }
@@ -49,30 +49,30 @@ def on_message(client, userdata, msg):
             mqtt_data["yTableCurrent"] = y_axil
 
             # Initialize max if None
-            if mqtt_data["xTableCurrentmax"] is None:
-                mqtt_data["xTableCurrentmax"] = x_axil
-            if mqtt_data["yTableCurrentmax"] is None:
-                mqtt_data["yTableCurrentmax"] = y_axil
+            if mqtt_data["xTableCurrentMax"] is None:
+                mqtt_data["xTableCurrentMax"] = x_axil
+            if mqtt_data["yTableCurrentMax"] is None:
+                mqtt_data["yTableCurrentMax"] = y_axil
 
             # Update max values
-            if abs(x_axil) > abs(mqtt_data["xTableCurrentmax"]):
-                mqtt_data["xTableCurrentmax"] = x_axil
-            if abs(y_axil) > abs(mqtt_data["yTableCurrentmax"]):
-                mqtt_data["yTableCurrentmax"] = y_axil
+            if abs(x_axil) > abs(mqtt_data["xTableCurrentMax"]):
+                mqtt_data["xTableCurrentMax"] = x_axil
+            if abs(y_axil) > abs(mqtt_data["yTableCurrentMax"]):
+                mqtt_data["yTableCurrentMax"] = y_axil
 
             # Increment and reset counter if needed
             mqtt_data["read_counter"] += 1
             if mqtt_data["read_counter"] >= 10:
                 mqtt_data["read_counter"] = 0
-                mqtt_data["xTableCurrentmax"] = x_axil
-                mqtt_data["yTableCurrentmax"] = y_axil
+                mqtt_data["xTableCurrentMax"] = x_axil
+                mqtt_data["yTableCurrentMax"] = y_axil
 
             # Copy to all spindles
             for i in range(1, 7):
                 mqtt_data[f"spindle{i}"]["xTableCurrent"] = x_axil
                 mqtt_data[f"spindle{i}"]["yTableCurrent"] = y_axil
-                mqtt_data[f"spindle{i}"]["xTableCurrentmax"] = mqtt_data["xTableCurrentmax"]
-                mqtt_data[f"spindle{i}"]["yTableCurrentmax"] = mqtt_data["yTableCurrentmax"]
+                mqtt_data[f"spindle{i}"]["xTableCurrentMax"] = mqtt_data["xTableCurrentMax"]
+                mqtt_data[f"spindle{i}"]["yTableCurrentMax"] = mqtt_data["yTableCurrentMax"]
 
         else:
             # Handle spindle1/1X, spindle2/2X, etc.
@@ -184,8 +184,6 @@ def reasoning():
             "ncs": spindle_data.get("NCS") if spindle_data.get("NCS") is not None else "no_data"
         }
 
-        # print(abs(spindle_data["yTableCurrentmax"]) if spindle_data.get("yTableCurrentmax") is not None else "no_data")
-        # print(abs(spindle_data["xTableCurrentmax"]) if spindle_data.get("xTableCurrentmax") is not None else "no_data")
 
         # Send this payload to the Spring Boot endpoint
         result = send_to_reasoning_endpoint(payload, SPRING_BOOT_URL_RULE_ENGINE)
