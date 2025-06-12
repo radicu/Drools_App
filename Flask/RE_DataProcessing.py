@@ -48,21 +48,26 @@ def on_message(client, userdata, msg):
         data = json.loads(payload)
 
         if topic == "TableCurrent":
-            x_axil = data.get("X_Axil")
-            y_axil = data.get("Y_Axil")
+            x_axil = abs(float(data.get("X_Axil")))
+            y_axil = abs(float(data.get("Y_Axil")))
 
-            # Append to rolling window
+            mqtt_data["xTableCurrent"] = x_axil
+            mqtt_data["yTableCurrent"] = y_axil
+
             mqtt_data["xTableCurrent_window"].append(x_axil)
             mqtt_data["yTableCurrent_window"].append(y_axil)
 
-            # Calculate moving average
-            mqtt_data["xTableCurrent_avg"] = sum(mqtt_data["xTableCurrent_window"]) / len(mqtt_data["xTableCurrent_window"])
-            mqtt_data["yTableCurrent_avg"] = sum(mqtt_data["yTableCurrent_window"]) / len(mqtt_data["yTableCurrent_window"])
+            if mqtt_data["xTableCurrent_window"]:
+                mqtt_data["xTableCurrent_avg"] = sum(mqtt_data["xTableCurrent_window"]) / len(mqtt_data["xTableCurrent_window"])
+            if mqtt_data["yTableCurrent_window"]:
+                mqtt_data["yTableCurrent_avg"] = sum(mqtt_data["yTableCurrent_window"]) / len(mqtt_data["yTableCurrent_window"])
 
-            # Update to all spindles
             for i in range(1, 7):
-                mqtt_data[f"spindle{i}"]["xTableCurrent"] = mqtt_data["xTableCurrent_avg"]
-                mqtt_data[f"spindle{i}"]["yTableCurrent"] = mqtt_data["yTableCurrent_avg"]
+                mqtt_data[f"spindle{i}"]["xTableCurrent"] = x_axil
+                mqtt_data[f"spindle{i}"]["yTableCurrent"] = y_axil
+                mqtt_data[f"spindle{i}"]["xTableCurrent_avg"] = mqtt_data["xTableCurrent_avg"]
+                mqtt_data[f"spindle{i}"]["yTableCurrent_avg"] = mqtt_data["yTableCurrent_avg"]
+
 
         else:
             # Handle spindle1/1X, spindle2/2X, etc.
