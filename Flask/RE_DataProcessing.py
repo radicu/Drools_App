@@ -11,11 +11,14 @@ app = Flask(__name__)
 
 SPRING_BOOT_URL_RULE_ENGINE = "http://localhost:8080/evaluate-rule"  # Local
 
+reset_time = 5#5 Second
+
 mqtt_data = {
-    "xTableCurrent_window": deque(maxlen=10),
-    "yTableCurrent_window": deque(maxlen=10),
-    "xTableCurrent_avg": None,
-    "yTableCurrent_avg": None,
+   "xTableCurrent": None,
+    "yTableCurrent": None,
+    "xTableCurrent_max": None,
+    "yTableCurrent_max": None,
+    "last_reset_time": time.time(),
     **{
         f"spindle{i}": {
             "ANC_window": deque(maxlen=10),
@@ -48,25 +51,36 @@ def on_message(client, userdata, msg):
         data = json.loads(payload)
 
         if topic == "TableCurrent":
-            x_axil = abs(float(data.get("X_Axil")))
-            y_axil = abs(float(data.get("Y_Axil")))
+            x_axil = data.get("X_Axil")
+            y_axil = data.get("Y_Axil")
 
             mqtt_data["xTableCurrent"] = x_axil
             mqtt_data["yTableCurrent"] = y_axil
 
-            mqtt_data["xTableCurrent_window"].append(x_axil)
-            mqtt_data["yTableCurrent_window"].append(y_axil)
+            # Use absolute for max tracking
+            if mqtt_data["xTableCurrent_max"] is None:
+                mqtt_data["xTableCurrent_max"] = abs(x_axil)
+            if mqtt_data["yTableCurrent_max"] is None:
+                mqtt_data["yTableCurrent_max"] = abs(y_axil)
 
-            if mqtt_data["xTableCurrent_window"]:
-                mqtt_data["xTableCurrent_avg"] = sum(mqtt_data["xTableCurrent_window"]) / len(mqtt_data["xTableCurrent_window"])
-            if mqtt_data["yTableCurrent_window"]:
-                mqtt_data["yTableCurrent_avg"] = sum(mqtt_data["yTableCurrent_window"]) / len(mqtt_data["yTableCurrent_window"])
+            if abs(x_axil) > mqtt_data["xTableCurrent_max"]:
+                mqtt_data["xTableCurrent_max"] = abs(x_axil)
+            if abs(y_axil) > mqtt_data["yTableCurrent_max"]:
+                mqtt_data["yTableCurrent_max"] = abs(y_axil)
 
+            # Check if reset_time seconds have passed since last reset
+            current_time = time.time()
+            if current_time - mqtt_data["last_reset_time"] >= reset_time:
+                mqtt_data["xTableCurrent_max"] = abs(x_axil)
+                mqtt_data["yTableCurrent_max"] = abs(y_axil)
+                mqtt_data["last_reset_time"] = current_time
+
+            # Copy to all spindles
             for i in range(1, 7):
-                mqtt_data[f"spindle{i}"]["xTableCurrent"] = x_axil
-                mqtt_data[f"spindle{i}"]["yTableCurrent"] = y_axil
-                mqtt_data[f"spindle{i}"]["xTableCurrent_avg"] = mqtt_data["xTableCurrent_avg"]
-                mqtt_data[f"spindle{i}"]["yTableCurrent_avg"] = mqtt_data["yTableCurrent_avg"]
+                mqtt_data[f"spindle{i}"]["xTableCurrent"] = abs(x_axil)
+                mqtt_data[f"spindle{i}"]["yTableCurrent"] = abs(y_axil)
+                mqtt_data[f"spindle{i}"]["xTableCurrent_max"] = mqtt_data["xTableCurrent_max"]
+                mqtt_data[f"spindle{i}"]["yTableCurrent_max"] = mqtt_data["yTableCurrent_max"]
 
 
         else:
@@ -183,8 +197,8 @@ def reasoning():
         # Build payload for this spindle only
         payload = {
             "spindleId": f"Spindle{i}",
-            "yTableCurrent": spindle_data.get("yTableCurrent_avg") if spindle_data.get("yTableCurrent_avg") is not None else "no_data",
-            "xTableCurrent": spindle_data.get("xTableCurrent_avg") if spindle_data.get("xTableCurrent_avg") is not None else "no_data",
+            "yTableCurrent": spindle_data.get("yTableCurrent_max") if spindle_data.get("yTableCurrent_max") is not None else "no_data",
+            "xTableCurrent": spindle_data.get("xTableCurrent_max") if spindle_data.get("xTableCurrent_max") is not None else "no_data",
             "anc": spindle_data.get("ANC") if spindle_data.get("ANC") is not None else "no_data",
             "bwo": spindle_data.get("BWO") if spindle_data.get("BWO") is not None else "no_data",
             "ss": spindle_data.get("SS") if spindle_data.get("SS") is not None else "no_data",

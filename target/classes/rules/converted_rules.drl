@@ -5,7 +5,7 @@ import com.radicu.ruleengine.model.Variable;
 rule "R010"
     salience 5
 when
-    $fact : Variable(xTableCurrent < 2 && yTableCurrent < 2)
+    $fact : Variable(xTableCurrent < 10 && yTableCurrent < 10)
 then
     $fact.setState("Machine Inactive");
 end
@@ -13,7 +13,7 @@ end
 rule "R009"
     salience 50
 when
-    $fact : Variable(ph > 1500 && xTableCurrent > 2 && yTableCurrent > 2)
+    $fact : Variable(ph > 1500 && xTableCurrent > 10 && yTableCurrent > 10)
 then
     $fact.setState("Drilling Big Hole");
 end
@@ -21,7 +21,7 @@ end
 rule "R008"
     salience 50
 when
-    $fact : Variable((sf < 1000 || bwo < 400) && xTableCurrent > 2 && yTableCurrent > 2)
+    $fact : Variable((sf < 1000 || bwo < 400) && xTableCurrent > 10 && yTableCurrent > 10)
 then
     $fact.setState("Warm Up");
 end
@@ -29,7 +29,7 @@ end
 rule "R007"
     salience 2
 when
-    $fact : Variable(ncs > 1000 && (sf < 1000 || bwo < 300) && xTableCurrent > 2 && yTableCurrent > 2)
+    $fact : Variable(ncs > 1000 && (sf < 1000 || bwo < 300) && xTableCurrent > 10 && yTableCurrent > 10)
 then
     $fact.setState("Change Bits");
 end
@@ -45,7 +45,7 @@ end
 rule "R005"
     salience 50
 when
-    $fact : Variable((sf > 1000 || bwo > 400) && ph < 1500 && xTableCurrent > 2 && yTableCurrent > 2)
+    $fact : Variable((sf > 1000 || bwo > 400) && ph < 1500 && xTableCurrent > 10 && yTableCurrent > 10)
 then
     $fact.setState("Drilling Small");
 end
