@@ -21,7 +21,7 @@ end
 rule "R007"
     salience 2
 when
-    $fact : Variable(ncs > 1000 && xTableCurrentMax > 6 && yTableCurrentMax > 6)
+    $fact : Variable(ncs > 1000 && (sf < 1000 || bwo < 300) && xTableCurrentMax > 6 && yTableCurrentMax > 6)
 then
     $fact.setState("Change Bits");
 end
