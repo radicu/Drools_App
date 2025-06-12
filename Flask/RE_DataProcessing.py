@@ -15,8 +15,8 @@ mqtt_data = {
     "read_counter": 0,
     "xTableCurrent": None,
     "yTableCurrent": None,
-    "xTableCurrentmax": None,
-    "yTableCurrentmax": None,
+    "xTableCurrentMax": None,
+    "yTableCurrentMax": None,
     **{
         f"spindle{i}": {
             "ANC_window": deque(maxlen=10),
