@@ -2,6 +2,7 @@ package rules;
 
 import com.radicu.ruleengine.model.Variable;
 
+
 rule "R009"
     salience 50
 when
@@ -29,9 +30,9 @@ end
 rule "R006"
     salience 50
 when
-    $fact : Variable(anc < 2000 || bwo < 400 || xTableCurrentMax < 2 && yTableCurrentMax < 2)
+    $fact : Variable(anc < 2000 || bwo < 400)
 then
-    $fact.setState("Machine idle");
+    $fact.setState("Spindle idle");
 end
 
 rule "R005"
