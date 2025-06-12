@@ -4,6 +4,8 @@ import threading
 from flask import Flask, jsonify
 import paho.mqtt.client as mqtt
 import json
+from collections import deque
+
 
 app = Flask(__name__)
 
@@ -13,10 +15,16 @@ mqtt_data = {
     "read_counter": 0,
     "xTableCurrent": None,
     "yTableCurrent": None,
-    "xTableCurrentMax": None,
-    "yTableCurrentMax": None,
+    "xTableCurrentmax": None,
+    "yTableCurrentmax": None,
     **{
         f"spindle{i}": {
+            "ANC_window": deque(maxlen=10),
+            "BWO_window": deque(maxlen=10),
+            "SS_window": deque(maxlen=10),
+            "NCS_window": deque(maxlen=10),
+            "PH_window": deque(maxlen=10),
+            "SF_window": deque(maxlen=10),
             "ANC": None,
             "BWO": None,
             "SS": None,
@@ -25,8 +33,8 @@ mqtt_data = {
             "SF": None,
             "xTableCurrent": None,
             "yTableCurrent": None,
-            "xTableCurrentMax": None,
-            "yTableCurrentMax": None
+            "xTableCurrentmax": None,
+            "yTableCurrentmax": None
         } for i in range(1, 7)
     }
 }
@@ -78,24 +86,30 @@ def on_message(client, userdata, msg):
 
         else:
             # Handle spindle1/1X, spindle2/2X, etc.
+            windowed_fields = {
+                "1X": "ANC",
+                "2X": "BWO",
+                "3X": "SS",
+                "0.35X-0.45X": "NCS",
+                "450-550 Hz": "PH",
+                "8-36 Hz": "SF"
+            }
+
             for i in range(1, 7):
                 prefix = f"spindle{i}/"
                 if topic.startswith(prefix):
                     subtopic = topic.replace(prefix, "")
+                    field_key = windowed_fields.get(subtopic)
+                    if field_key:
+                        value = data.get("max_mag")
+                        if value is not None:
+                            window_key = f"{field_key}_window"
+                            mqtt_data[f"spindle{i}"][window_key].append(value)
 
-                    if subtopic == "1X":
-                        mqtt_data[f"spindle{i}"]["ANC"] = data.get("max_mag")
-                    elif subtopic == "2X":
-                        mqtt_data[f"spindle{i}"]["BWO"] = data.get("max_mag")
-                    elif subtopic == "3X":
-                        mqtt_data[f"spindle{i}"]["SS"] = data.get("max_mag")
-                    elif subtopic == "0.35X-0.45X":
-                        mqtt_data[f"spindle{i}"]["NCS"] = data.get("max_mag")
-                    elif subtopic == "450-550 Hz":
-                        mqtt_data[f"spindle{i}"]["PH"] = data.get("max_mag")
-                    elif subtopic == "8-36 Hz":
-                        mqtt_data[f"spindle{i}"]["SF"] = data.get("max_mag")
-                    break  # Stop once matched
+                            # Compute moving average
+                            values = mqtt_data[f"spindle{i}"][window_key]
+                            mqtt_data[f"spindle{i}"][field_key] = sum(values) / len(values)
+                    break
 
     except json.JSONDecodeError as e:
         print(f"Failed to decode JSON: {e}")

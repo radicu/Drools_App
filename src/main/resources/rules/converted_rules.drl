@@ -5,7 +5,7 @@ import com.radicu.ruleengine.model.Variable;
 rule "R009"
     salience 50
 when
-    $fact : Variable(ph > 1000 && sf < 1000 && xTableCurrentMax > 6 && yTableCurrentMax > 6)
+    $fact : Variable(ph > 1000 && sf < 800 && xTableCurrentMax > 6 && yTableCurrentMax > 6)
 then
     $fact.setState("Drilling Big Hole");
 end
@@ -13,7 +13,7 @@ end
 rule "R008"
     salience 50
 when
-    $fact : Variable((sf < 1000 || bwo < 400) && xTableCurrentMax > 6 && yTableCurrentMax > 6)
+    $fact : Variable((sf < 800 || bwo < 300) && xTableCurrentMax > 6 && yTableCurrentMax > 6)
 then
     $fact.setState("Warm Up");
 end
@@ -29,7 +29,7 @@ end
 rule "R006"
     salience 50
 when
-    $fact : Variable((sf < 1000 || bwo < 400) && ph < 1000)
+    $fact : Variable((sf < 800 || bwo < 300) && ph < 1000)
 then
     $fact.setState("Spindle idle");
 end
@@ -37,7 +37,7 @@ end
 rule "R005"
     salience 50
 when
-    $fact : Variable((sf > 1000 || bwo > 400) && ph < 1000 && xTableCurrentMax > 6 && yTableCurrentMax > 6)
+    $fact : Variable((sf > 800 || bwo > 300) && ph < 1000 && xTableCurrentMax > 6 && yTableCurrentMax > 6)
 then
     $fact.setState("Drilling Small");
 end
