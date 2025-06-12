@@ -12,11 +12,9 @@ public class Variable {
     private String krpm;
     private float ph;
     private float sf;
-    private float yTableCurrentMax;
     private float spindleCurrent;
     private String spindle_current;
     private float xTableCurrent;
-    private float xTableCurrentMax;
     private String spindleId;
     private float yTableCurrent;
     private float bwo;
@@ -79,15 +77,6 @@ public class Variable {
         this.sf = sf;
     }
 
-    @JsonProperty("yTableCurrentMax")
-    public float getYTableCurrentMax() {
-        return yTableCurrentMax;
-    }
-
-    public void setYTableCurrentMax(float yTableCurrentMax) {
-        this.yTableCurrentMax = yTableCurrentMax;
-    }
-
     @JsonProperty("spindleCurrent")
     public float getSpindleCurrent() {
         return spindleCurrent;
@@ -113,15 +102,6 @@ public class Variable {
 
     public void setXTableCurrent(float xTableCurrent) {
         this.xTableCurrent = xTableCurrent;
-    }
-
-    @JsonProperty("xTableCurrentMax")
-    public float getXTableCurrentMax() {
-        return xTableCurrentMax;
-    }
-
-    public void setXTableCurrentMax(float xTableCurrentMax) {
-        this.xTableCurrentMax = xTableCurrentMax;
     }
 
     @JsonProperty("spindleId")

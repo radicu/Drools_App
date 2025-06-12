@@ -13,10 +13,10 @@ SPRING_BOOT_URL_RULE_ENGINE = "http://localhost:8080/evaluate-rule"  # Local
 
 mqtt_data = {
     "read_counter": 0,
-    "xTableCurrent": None,
-    "yTableCurrent": None,
-    "xTableCurrentMax": None,
-    "yTableCurrentMax": None,
+    "xTableCurrent_window": deque(maxlen=10),
+    "yTableCurrent_window": deque(maxlen=10),
+    "xTableCurrent_avg": None,
+    "yTableCurrent_avg": None,
     **{
         f"spindle{i}": {
             "ANC_window": deque(maxlen=10),
@@ -32,9 +32,7 @@ mqtt_data = {
             "PH": None,
             "SF": None,
             "xTableCurrent": None,
-            "yTableCurrent": None,
-            "xTableCurrentMax": None,
-            "yTableCurrentMax": None
+            "yTableCurrent": None
         } for i in range(1, 7)
     }
 }
@@ -54,35 +52,18 @@ def on_message(client, userdata, msg):
             x_axil = data.get("X_Axil")
             y_axil = data.get("Y_Axil")
 
-            # Update base values
-            mqtt_data["xTableCurrent"] = x_axil
-            mqtt_data["yTableCurrent"] = y_axil
+            # Append to rolling window
+            mqtt_data["xTableCurrent_window"].append(x_axil)
+            mqtt_data["yTableCurrent_window"].append(y_axil)
 
-            # Initialize max if None
-            if mqtt_data["xTableCurrentMax"] is None:
-                mqtt_data["xTableCurrentMax"] = x_axil
-            if mqtt_data["yTableCurrentMax"] is None:
-                mqtt_data["yTableCurrentMax"] = y_axil
+            # Calculate moving average
+            mqtt_data["xTableCurrent_avg"] = sum(mqtt_data["xTableCurrent_window"]) / len(mqtt_data["xTableCurrent_window"])
+            mqtt_data["yTableCurrent_avg"] = sum(mqtt_data["yTableCurrent_window"]) / len(mqtt_data["yTableCurrent_window"])
 
-            # Update max values
-            if abs(x_axil) > abs(mqtt_data["xTableCurrentMax"]):
-                mqtt_data["xTableCurrentMax"] = x_axil
-            if abs(y_axil) > abs(mqtt_data["yTableCurrentMax"]):
-                mqtt_data["yTableCurrentMax"] = y_axil
-
-            # Increment and reset counter if needed
-            mqtt_data["read_counter"] += 1
-            if mqtt_data["read_counter"] >= 10:
-                mqtt_data["read_counter"] = 0
-                mqtt_data["xTableCurrentMax"] = x_axil
-                mqtt_data["yTableCurrentMax"] = y_axil
-
-            # Copy to all spindles
+            # Update to all spindles
             for i in range(1, 7):
-                mqtt_data[f"spindle{i}"]["xTableCurrent"] = x_axil
-                mqtt_data[f"spindle{i}"]["yTableCurrent"] = y_axil
-                mqtt_data[f"spindle{i}"]["xTableCurrentMax"] = mqtt_data["xTableCurrentMax"]
-                mqtt_data[f"spindle{i}"]["yTableCurrentMax"] = mqtt_data["yTableCurrentMax"]
+                mqtt_data[f"spindle{i}"]["xTableCurrent"] = mqtt_data["xTableCurrent_avg"]
+                mqtt_data[f"spindle{i}"]["yTableCurrent"] = mqtt_data["yTableCurrent_avg"]
 
         else:
             # Handle spindle1/1X, spindle2/2X, etc.
@@ -198,8 +179,8 @@ def reasoning():
         # Build payload for this spindle only
         payload = {
             "spindleId": f"Spindle{i}",
-            "yTableCurrentMax": abs(spindle_data["yTableCurrentMax"]) if spindle_data.get("yTableCurrentMax") is not None else "no_data",
-            "xTableCurrentMax": abs(spindle_data["xTableCurrentMax"]) if spindle_data.get("xTableCurrentMax") is not None else "no_data",
+            "yTableCurrent": spindle_data.get("yTableCurrent") if spindle_data.get("yTableCurrent") is not None else "no_data",
+            "xTableCurrent": spindle_data.get("xTableCurrent") if spindle_data.get("xTableCurrent") is not None else "no_data",
             "anc": spindle_data.get("ANC") if spindle_data.get("ANC") is not None else "no_data",
             "bwo": spindle_data.get("BWO") if spindle_data.get("BWO") is not None else "no_data",
             "ss": spindle_data.get("SS") if spindle_data.get("SS") is not None else "no_data",
