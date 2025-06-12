@@ -30,7 +30,7 @@ end
 rule "R006"
     salience 50
 when
-    $fact : Variable(anc < 2000 || bwo < 400)
+    $fact : Variable((anc < 2000 || bwo < 400) && ph < 1000)
 then
     $fact.setState("Spindle idle");
 end
