@@ -33,8 +33,8 @@ mqtt_data = {
             "SF": None,
             "xTableCurrent": None,
             "yTableCurrent": None,
-            "xTableCurrentmax": None,
-            "yTableCurrentmax": None
+            "xTableCurrentMax": None,
+            "yTableCurrentMax": None
         } for i in range(1, 7)
     }
 }
