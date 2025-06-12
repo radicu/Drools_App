@@ -108,7 +108,7 @@ def on_connect(client, userdata, flags, rc):
                 f"spindle{i}/1X",
                 f"spindle{i}/2X",
                 f"spindle{i}/3X",
-                f"spindle{i}/0.35X-0.45X"
+                f"spindle{i}/0.35X-0.45X",
                 f"spindle{i}/450-550 Hz"
             ])
 
