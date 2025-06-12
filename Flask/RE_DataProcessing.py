@@ -12,7 +12,6 @@ app = Flask(__name__)
 SPRING_BOOT_URL_RULE_ENGINE = "http://localhost:8080/evaluate-rule"  # Local
 
 mqtt_data = {
-    "read_counter": 0,
     "xTableCurrent_window": deque(maxlen=10),
     "yTableCurrent_window": deque(maxlen=10),
     "xTableCurrent_avg": None,
@@ -179,8 +178,8 @@ def reasoning():
         # Build payload for this spindle only
         payload = {
             "spindleId": f"Spindle{i}",
-            "yTableCurrent": spindle_data.get("yTableCurrent") if spindle_data.get("yTableCurrent") is not None else "no_data",
-            "xTableCurrent": spindle_data.get("xTableCurrent") if spindle_data.get("xTableCurrent") is not None else "no_data",
+            "yTableCurrent": spindle_data.get("yTableCurrent_avg") if spindle_data.get("yTableCurrent_avg") is not None else "no_data",
+            "xTableCurrent": spindle_data.get("xTableCurrent_avg") if spindle_data.get("xTableCurrent_avg") is not None else "no_data",
             "anc": spindle_data.get("ANC") if spindle_data.get("ANC") is not None else "no_data",
             "bwo": spindle_data.get("BWO") if spindle_data.get("BWO") is not None else "no_data",
             "ss": spindle_data.get("SS") if spindle_data.get("SS") is not None else "no_data",
