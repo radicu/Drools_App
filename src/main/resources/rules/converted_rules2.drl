@@ -1,0 +1,77 @@
+package rules;
+
+import com.radicu.ruleengine.model.Variable;
+
+rule "R013"
+    salience 1
+when
+    $fact : Variable(((ph < 1500 && sf > 10000) || (ph > 1500 && sf > 5500)) && xTableCurrent > 2 && yTableCurrent > 2)
+then
+    $fact.setState("Emergency Stop");
+end
+
+
+rule "R012"
+    salience 10
+when
+    $fact : Variable(ph > 1500 && sf > 3500 && xTableCurrent > 2 && yTableCurrent > 2)
+then
+    $fact.setState("Big Drilling Check High");
+end
+
+rule "R011"
+    salience 10
+when
+    $fact : Variable(ph < 1500 && sf > 8000 && xTableCurrent > 2 && yTableCurrent > 2)
+then
+    $fact.setState("Small Drilling Check High");
+end
+
+rule "R010"
+    salience 5
+when
+    $fact : Variable(xTableCurrent < 2 && yTableCurrent < 2)
+then
+    $fact.setState("Machine Inactive");
+end
+
+rule "R009"
+    salience 50
+when
+    $fact : Variable(ph > 1500 && xTableCurrent > 2 && yTableCurrent > 2)
+then
+    $fact.setState("Drilling Big Hole");
+end
+
+rule "R008"
+    salience 50
+when
+    $fact : Variable((sf < 1000 || bwo < 400) && xTableCurrent > 2 && yTableCurrent > 2)
+then
+    $fact.setState("Warm Up");
+end
+
+rule "R007"
+    salience 2
+when
+    $fact : Variable(ncs > 400 && (sf < 1000 || bwo < 300) && xTableCurrent > 2 && yTableCurrent > 2)
+then
+    $fact.setState("Change Bits");
+end
+
+rule "R006"
+    salience 50
+when
+    $fact : Variable((sf < 1000 || bwo < 400) && ph < 1000)
+then
+    $fact.setState("Spindle idle");
+end
+
+rule "R005"
+    salience 50
+when
+    $fact : Variable((sf > 1000 || bwo > 400) && ph < 1500 && xTableCurrent > 2 && yTableCurrent > 2)
+then
+    $fact.setState("Drilling Small");
+end
+

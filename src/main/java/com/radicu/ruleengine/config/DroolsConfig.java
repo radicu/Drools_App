@@ -24,6 +24,12 @@ public class DroolsConfig {
         return buildContainer("rules/converted_rules.drl");
     }
 
+    // Custom rules for experiment
+    @Bean(name = "variableKieContainer2")
+    public KieContainer variableKieContainer2(){
+        return buildContainer("rules/converted_rules2.drl");
+    }
+
     private KieContainer buildContainer(String drlFile) {
         KieServices kieServices = KieServices.Factory.get();
         KieFileSystem kieFileSystem = kieServices.newKieFileSystem();

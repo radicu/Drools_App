@@ -19,6 +19,7 @@ import com.radicu.ruleengine.service.RulesExcel;
 import com.radicu.ruleengine.service.StressTestService;
 import com.radicu.ruleengine.service.UniversalRuleExtractorService;
 import com.radicu.ruleengine.service.RuleEngineServiceVariable;//Un-comment this after upload KG
+import com.radicu.ruleengine.service.RuleEngineServiceVariable2;//Rules for exeriment
 
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -41,6 +42,7 @@ public class RuleController {
     private final RuleEngineServiceGenerator ruleEngineServiceGenerator;
     private final ControllerUpdater controllerUpdater;
     private final RuleEngineServiceVariable ruleEngineServiceVariable;//Un-comment this after upload KG
+    private final RuleEngineServiceVariable2 ruleEngineServiceVariable2;//For experiment
 
     // Log for debugging
     private static final Logger logger = LoggerFactory.getLogger(RuleController.class);
@@ -50,6 +52,7 @@ public class RuleController {
     , StressTestService stressTestService, KGModelGenerator kgModelGenerator, 
     RuleEngineServiceGenerator ruleEngineServiceGenerator, ControllerUpdater controllerUpdater
     , RuleEngineServiceVariable ruleEngineServiceVariable //Un-comment this after upload KG
+    , RuleEngineServiceVariable2 ruleEngineServiceVariable2//For experiment
     ) 
     {
         this.ruleEngineService = ruleEngineService;
@@ -59,6 +62,7 @@ public class RuleController {
         this.ruleEngineServiceGenerator = ruleEngineServiceGenerator;
         this.controllerUpdater = controllerUpdater;
         this.ruleEngineServiceVariable = ruleEngineServiceVariable; //Un-comment this after upload KG
+        this.ruleEngineServiceVariable2 = ruleEngineServiceVariable2;
     }
 
     // Download rule in excel format
@@ -143,6 +147,13 @@ public class RuleController {
     @PostMapping("/evaluate-rule")
     public ResponseEntity<Variable> evaluateRule(@RequestBody Variable variable) {
         Variable result = ruleEngineServiceVariable.runRules(variable);
+        return ResponseEntity.ok(result);
+    }
+
+    //For experimenting rules
+    @PostMapping("/evaluate-rule-exp")
+    public ResponseEntity<Variable> evaluateRule2(@RequestBody Variable variable) {
+        Variable result = ruleEngineServiceVariable2.runRules2(variable);
         return ResponseEntity.ok(result);
     }
 

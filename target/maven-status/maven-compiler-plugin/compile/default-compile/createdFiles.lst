@@ -10,5 +10,6 @@ com\radicu\ruleengine\service\RuleEngineServiceVariable.class
 com\radicu\ruleengine\service\StressTestService.class
 com\radicu\ruleengine\RuleengineApplication.class
 com\radicu\ruleengine\config\DroolsConfig.class
+com\radicu\ruleengine\service\RuleEngineServiceVariable2.class
 com\radicu\ruleengine\controller\RuleController.class
 com\radicu\ruleengine\service\RulesExcel.class
