@@ -11,6 +11,7 @@ public class Variable {
     private float ss;
     private String krpm;
     private float ph;
+    private float sf;
     private float yTableCurrentMax;
     private float spindleCurrent;
     private String spindle_current;
@@ -67,6 +68,15 @@ public class Variable {
 
     public void setPh(float ph) {
         this.ph = ph;
+    }
+
+    @JsonProperty("sf")
+    public float getSf() {
+        return sf;
+    }
+
+    public void setSf(float sf) {
+        this.sf = sf;
     }
 
     @JsonProperty("yTableCurrentMax")

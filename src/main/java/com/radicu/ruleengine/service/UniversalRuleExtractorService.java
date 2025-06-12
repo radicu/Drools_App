@@ -116,75 +116,42 @@ public class UniversalRuleExtractorService {
 
         if (conditionLiteral != null && !conditionLiteral.isEmpty()) {
             String cleanedCondition = conditionLiteral.replaceAll("\\?", "").trim();
-            String[] conditionParts = cleanedCondition.split("&&");
 
-            // 👉 Detect if the entire condition contains OR logic
+            // If top-level OR exists, use full expression in parentheses with '&&' inside Drools
             boolean containsOr = cleanedCondition.contains("||");
 
             StringBuilder conditionBuilder = new StringBuilder();
             conditionBuilder.append("$fact : Variable(");
 
+            // If condition already contains parentheses (grouping), preserve them
+            List<String> parts = splitByTopLevelAnd(cleanedCondition);
+
             boolean first = true;
-            for (String part : conditionParts) {
-                String cond = part.trim();
-                if (cond.isEmpty()) continue;
+            for (String part : parts) {
+                String trimmed = part.trim();
 
-                // Smart detect comparison vs bare field
-                Pattern pattern = Pattern.compile("^([a-zA-Z0-9_]+)\\s*([><=!]+)\\s*(.+)$");
-                Matcher matcher = pattern.matcher(cond);
+                // Keep parenthesis block as-is but normalize field names inside
+                if (trimmed.startsWith("(") && trimmed.endsWith(")")) {
+                    String inner = trimmed.substring(1, trimmed.length() - 1).trim();
+                    String normalizedGroup = normalizeExpression(inner);
 
-                if (matcher.find()) {
-                    String leftField = matcher.group(1).trim();
-                    String operator = matcher.group(2).trim();
-                    String rightValue = matcher.group(3).trim();
-
-                    String normalizedLeft = normalizeFieldName(leftField);
-                    String normalizedRight = normalizeFieldName(rightValue.replaceAll("\\?", ""));
-
-                    String updatedCond = normalizedLeft + " " + operator + " ";
-
-                    if (isNumeric(rightValue)) {
-                        updatedCond += rightValue;
-                    } else if ((rightValue.startsWith("'") && rightValue.endsWith("'")) ||
-                            (rightValue.startsWith("\"") && rightValue.endsWith("\""))) {
-                        String cleanString = rightValue.substring(1, rightValue.length() - 1);
-                        updatedCond += "\"" + cleanString + "\"";
-                    } else {
-                        updatedCond += normalizedRight;
-                    }
-
-                    if (!first) {
-                        conditionBuilder.append(containsOr ? " && " : ", ");
-                    }
-                    conditionBuilder.append(updatedCond);
-                    first = false;
+                    if (!first) conditionBuilder.append(" && ");
+                    conditionBuilder.append("(").append(normalizedGroup).append(")");
                 } else {
-                    // Bare variable condition (e.g., AlarmFlag -> AlarmFlag > 0.0)
-                    String normalizedField = normalizeFieldName(cond);
-
-                    if (!usedFields.contains(normalizedField)) {
-                        usedFields.add(normalizedField);
-
-                        String updatedCond = normalizedField + " > 0.0";
-
-                        if (!first) {
-                            conditionBuilder.append(containsOr ? " && " : ", ");
-                        }
-                        conditionBuilder.append(updatedCond);
-                        first = false;
-                    }
+                    String normalized = normalizeExpression(trimmed);
+                    if (!first) conditionBuilder.append(" && ");
+                    conditionBuilder.append(normalized);
                 }
+                first = false;
             }
 
             conditionBuilder.append(")");
-
-            if (!first) {
-                conditions.add(conditionBuilder.toString());
-            }
+            conditions.add(conditionBuilder.toString());
         }
 
         return conditions;
     }
+
 
 
 
@@ -281,4 +248,62 @@ public class UniversalRuleExtractorService {
         Files.write(fullPath, drlContent.getBytes());
         }
 
+    private List<String> splitByTopLevelAnd(String expression) {
+        List<String> result = new ArrayList<>();
+        int depth = 0;
+        StringBuilder current = new StringBuilder();
+
+        for (int i = 0; i < expression.length(); i++) {
+            char ch = expression.charAt(i);
+
+            if (ch == '(') depth++;
+            if (ch == ')') depth--;
+
+            // Check for && at top level
+            if (i + 1 < expression.length() && ch == '&' && expression.charAt(i + 1) == '&' && depth == 0) {
+                result.add(current.toString());
+                current.setLength(0);
+                i++; // skip next &
+            } else {
+                current.append(ch);
+            }
+        }
+
+        if (current.length() > 0) {
+            result.add(current.toString());
+        }
+
+        return result;
+    }
+
+    private String normalizeExpression(String expression) {
+        Pattern pattern = Pattern.compile("([a-zA-Z0-9_]+)\\s*([><=!]+)\\s*([a-zA-Z0-9_\"']+)");
+        Matcher matcher = pattern.matcher(expression);
+        StringBuffer result = new StringBuffer();
+
+        while (matcher.find()) {
+            String left = normalizeFieldName(matcher.group(1).trim());
+            String op = matcher.group(2).trim();
+            String rightRaw = matcher.group(3).trim();
+            String right;
+
+            if (isNumeric(rightRaw)) {
+                right = rightRaw;
+            } else if ((rightRaw.startsWith("\"") && rightRaw.endsWith("\"")) ||
+                    (rightRaw.startsWith("'") && rightRaw.endsWith("'"))) {
+                right = "\"" + rightRaw.substring(1, rightRaw.length() - 1) + "\"";
+            } else {
+                right = normalizeFieldName(rightRaw);
+            }
+
+            matcher.appendReplacement(result, left + " " + op + " " + right);
+        }
+        matcher.appendTail(result);
+        return result.toString();
+    }
+
+
+
 }
+
+

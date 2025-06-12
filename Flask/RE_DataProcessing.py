@@ -22,6 +22,7 @@ mqtt_data = {
             "SS": None,
             "NCS": None,
             "PH": None,
+            "SF": None,
             "xTableCurrent": None,
             "yTableCurrent": None,
             "xTableCurrentMax": None,
@@ -92,6 +93,8 @@ def on_message(client, userdata, msg):
                         mqtt_data[f"spindle{i}"]["NCS"] = data.get("max_mag")
                     elif subtopic == "450-550 Hz":
                         mqtt_data[f"spindle{i}"]["PH"] = data.get("max_mag")
+                    elif subtopic == "8-36 Hz":
+                        mqtt_data[f"spindle{i}"]["SF"] = data.get("max_mag")
                     break  # Stop once matched
 
     except json.JSONDecodeError as e:
@@ -109,7 +112,8 @@ def on_connect(client, userdata, flags, rc):
                 f"spindle{i}/2X",
                 f"spindle{i}/3X",
                 f"spindle{i}/0.35X-0.45X",
-                f"spindle{i}/450-550 Hz"
+                f"spindle{i}/450-550 Hz",
+                f"spindle{i}/8-36 Hz"
             ])
 
         for topic in topics:
@@ -186,7 +190,8 @@ def reasoning():
             "bwo": spindle_data.get("BWO") if spindle_data.get("BWO") is not None else "no_data",
             "ss": spindle_data.get("SS") if spindle_data.get("SS") is not None else "no_data",
             "ncs": spindle_data.get("NCS") if spindle_data.get("NCS") is not None else "no_data",
-            "ph": spindle_data.get("PH") if spindle_data.get("PH") is not None else "no_data"
+            "ph": spindle_data.get("PH") if spindle_data.get("PH") is not None else "no_data",
+            "sf": spindle_data.get("SF") if spindle_data.get("SF") is not None else "no_data"
         }
 
 
@@ -221,7 +226,8 @@ def get_data():
             "bwo": spindle_data.get("BWO") if spindle_data.get("BWO") is not None else "no_data",
             "ss": spindle_data.get("SS") if spindle_data.get("SS") is not None else "no_data",
             "ncs": spindle_data.get("NCS") if spindle_data.get("NCS") is not None else "no_data",
-            "ph": spindle_data.get("PH") if spindle_data.get("PH") is not None else "no_data"
+            "ph": spindle_data.get("PH") if spindle_data.get("PH") is not None else "no_data",
+            "sf": spindle_data.get("SF") if spindle_data.get("SF") is not None else "no_data"
         })
 
     return jsonify(response)
