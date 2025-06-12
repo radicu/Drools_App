@@ -6,58 +6,23 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Variable {
 
-    private float drillingCondition1;
-    private String sPINDLE_STATES;
-    private float alarmLimit5100;
     private String state;
-    private float alarmLimit2;
-    private float drillingCondition3;
     private float ncs;
     private float ss;
     private String krpm;
+    private float ph;
     private float yTableCurrentMax;
-    private String drilling_condition;
     private float spindleCurrent;
-    private float drillingCondition2;
     private String spindle_current;
     private float xTableCurrent;
-    private String spindleId;
     private float xTableCurrentMax;
+    private String spindleId;
     private float yTableCurrent;
     private float bwo;
     private float anc;
     private float rpm;
     private String spindle;
-    private float alarmLimit3200;
-    private float alarmLimit4200;
 
-
-    @JsonProperty("drillingCondition1")
-    public float getDrillingCondition1() {
-        return drillingCondition1;
-    }
-
-    public void setDrillingCondition1(float drillingCondition1) {
-        this.drillingCondition1 = drillingCondition1;
-    }
-
-    @JsonProperty("sPINDLE_STATES")
-    public String getSPINDLE_STATES() {
-        return sPINDLE_STATES;
-    }
-
-    public void setSPINDLE_STATES(String sPINDLE_STATES) {
-        this.sPINDLE_STATES = sPINDLE_STATES;
-    }
-
-    @JsonProperty("alarmLimit5100")
-    public float getAlarmLimit5100() {
-        return alarmLimit5100;
-    }
-
-    public void setAlarmLimit5100(float alarmLimit5100) {
-        this.alarmLimit5100 = alarmLimit5100;
-    }
 
     @JsonProperty("state")
     public String getState() {
@@ -66,24 +31,6 @@ public class Variable {
 
     public void setState(String state) {
         this.state = state;
-    }
-
-    @JsonProperty("alarmLimit2")
-    public float getAlarmLimit2() {
-        return alarmLimit2;
-    }
-
-    public void setAlarmLimit2(float alarmLimit2) {
-        this.alarmLimit2 = alarmLimit2;
-    }
-
-    @JsonProperty("drillingCondition3")
-    public float getDrillingCondition3() {
-        return drillingCondition3;
-    }
-
-    public void setDrillingCondition3(float drillingCondition3) {
-        this.drillingCondition3 = drillingCondition3;
     }
 
     @JsonProperty("ncs")
@@ -113,6 +60,15 @@ public class Variable {
         this.krpm = krpm;
     }
 
+    @JsonProperty("ph")
+    public float getPh() {
+        return ph;
+    }
+
+    public void setPh(float ph) {
+        this.ph = ph;
+    }
+
     @JsonProperty("yTableCurrentMax")
     public float getYTableCurrentMax() {
         return yTableCurrentMax;
@@ -122,15 +78,6 @@ public class Variable {
         this.yTableCurrentMax = yTableCurrentMax;
     }
 
-    @JsonProperty("drilling_condition")
-    public String getDrilling_condition() {
-        return drilling_condition;
-    }
-
-    public void setDrilling_condition(String drilling_condition) {
-        this.drilling_condition = drilling_condition;
-    }
-
     @JsonProperty("spindleCurrent")
     public float getSpindleCurrent() {
         return spindleCurrent;
@@ -138,15 +85,6 @@ public class Variable {
 
     public void setSpindleCurrent(float spindleCurrent) {
         this.spindleCurrent = spindleCurrent;
-    }
-
-    @JsonProperty("drillingCondition2")
-    public float getDrillingCondition2() {
-        return drillingCondition2;
-    }
-
-    public void setDrillingCondition2(float drillingCondition2) {
-        this.drillingCondition2 = drillingCondition2;
     }
 
     @JsonProperty("spindle_current")
@@ -167,15 +105,6 @@ public class Variable {
         this.xTableCurrent = xTableCurrent;
     }
 
-    @JsonProperty("spindleId")
-    public String getSpindleId() {
-        return spindleId;
-    }
-
-    public void setSpindleId(String spindleId) {
-        this.spindleId = spindleId;
-    }
-
     @JsonProperty("xTableCurrentMax")
     public float getXTableCurrentMax() {
         return xTableCurrentMax;
@@ -183,6 +112,15 @@ public class Variable {
 
     public void setXTableCurrentMax(float xTableCurrentMax) {
         this.xTableCurrentMax = xTableCurrentMax;
+    }
+
+    @JsonProperty("spindleId")
+    public String getSpindleId() {
+        return spindleId;
+    }
+
+    public void setSpindleId(String spindleId) {
+        this.spindleId = spindleId;
     }
 
     @JsonProperty("yTableCurrent")
@@ -228,23 +166,5 @@ public class Variable {
 
     public void setSpindle(String spindle) {
         this.spindle = spindle;
-    }
-
-    @JsonProperty("alarmLimit3200")
-    public float getAlarmLimit3200() {
-        return alarmLimit3200;
-    }
-
-    public void setAlarmLimit3200(float alarmLimit3200) {
-        this.alarmLimit3200 = alarmLimit3200;
-    }
-
-    @JsonProperty("alarmLimit4200")
-    public float getAlarmLimit4200() {
-        return alarmLimit4200;
-    }
-
-    public void setAlarmLimit4200(float alarmLimit4200) {
-        this.alarmLimit4200 = alarmLimit4200;
     }
 }
