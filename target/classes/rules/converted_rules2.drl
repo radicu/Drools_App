@@ -5,7 +5,7 @@ import com.radicu.ruleengine.model.Variable;
 rule "R007"
     salience 2
 when
-    $fact : Variable(ncs > 1000 && (sf < 1000 || bwo < 300) && xTableCurrent > 2 && yTableCurrent > 2 && spindleCurrent > 1)
+    $fact : Variable(ncs > 500 && (sf < 1000 || bwo < 300) && xTableCurrent > 2 && yTableCurrent > 2 && spindleCurrent > 1)
 then
     $fact.setState("Change Bits");
 end
@@ -13,7 +13,7 @@ end
 rule "R009"
     salience 50
 when
-    $fact : Variable(ph > 1500 && xTableCurrent > 2 && yTableCurrent > 2 && spindleCurrent > 1)
+    $fact : Variable(ph > 5000 && xTableCurrent > 2 && yTableCurrent > 2 && spindleCurrent > 1)
 then
     $fact.setState("Drilling Big Hole");
 end
@@ -21,7 +21,7 @@ end
 rule "R010"
     salience 5
 when
-    $fact : Variable(xTableCurrent < 10 && yTableCurrent < 2)
+    $fact : Variable(xTableCurrent < 2 && yTableCurrent < 2)
 then
     $fact.setState("Machine Inactive");
 end
@@ -29,7 +29,7 @@ end
 rule "R012"
     salience 10
 when
-    $fact : Variable(ph > 1500 && sf > 6500 && xTableCurrent > 2 && yTableCurrent > 2)
+    $fact : Variable(ph > 5000 && sf > 3000 && xTableCurrent > 2 && yTableCurrent > 2 && spindleCurrent > 1)
 then
     $fact.setState("Big Drilling Check High");
 end
@@ -37,25 +37,17 @@ end
 rule "R005"
     salience 50
 when
-    $fact : Variable((sf > 1000 || bwo > 400) && ph < 1500 && xTableCurrent > 2 && yTableCurrent > 2 && spindleCurrent > 1)
+    $fact : Variable((sf > 1000 || bwo > 400) && ph < 5000 && xTableCurrent > 2 && yTableCurrent > 2 && spindleCurrent > 1)
 then
     $fact.setState("Drilling Small");
-end
-
-rule "R013"
-    salience 1
-when
-    $fact : Variable(((ph < 1500 && sf > 16000) || (ph > 1500 && sf > 7500)) && xTableCurrent > 2 && yTableCurrent > 2)
-then
-    $fact.setState("Emergency Stop");
 end
 
 rule "R014"
     salience 1
 when
-    $fact : Variable(spindleCurrent < 1 && yTableCurrent < 5 && xTableCurrent < 5 && sf < 2000 && ncs > bs)
+    $fact : Variable(spindleCurrent < 1 && yTableCurrent < 10 && xTableCurrent < 10 && ncs > 500)
 then
-    $fact.setState("Bits Change Broken");
+    $fact.setState("Bits False Alarm Remove");
 end
 
 rule "R006"
@@ -69,7 +61,7 @@ end
 rule "R008"
     salience 50
 when
-    $fact : Variable((sf < 1000 || bwo < 400) && xTableCurrent > 2 && yTableCurrent > 2)
+    $fact : Variable((sf < 1000 || bwo < 400) && xTableCurrent < 10 && yTableCurrent < 10)
 then
     $fact.setState("Warm Up");
 end
@@ -77,7 +69,7 @@ end
 rule "R011"
     salience 10
 when
-    $fact : Variable(ph < 1500 && sf > 12000 && xTableCurrent > 2 && yTableCurrent > 2 && spindleCurrent > 1)
+    $fact : Variable(ph < 5000 && sf > 6000 && xTableCurrent > 2 && yTableCurrent > 2 && spindleCurrent > 1)
 then
     $fact.setState("Small Drilling Check High");
 end

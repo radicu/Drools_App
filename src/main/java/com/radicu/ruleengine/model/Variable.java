@@ -11,6 +11,7 @@ public class Variable {
     private String state;
     private float ncs;
     private float ss;
+    private float ap1;
     private float bs;
     private String krpm;
     private float ph;
@@ -69,6 +70,15 @@ public class Variable {
 
     public void setSs(float ss) {
         this.ss = ss;
+    }
+
+    @JsonProperty("ap1")
+    public float getAp1() {
+        return ap1;
+    }
+
+    public void setAp1(float ap1) {
+        this.ap1 = ap1;
     }
 
     @JsonProperty("bs")
