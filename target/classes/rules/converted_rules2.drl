@@ -5,7 +5,7 @@ import com.radicu.ruleengine.model.Variable;
 rule "R013"
     salience 1
 when
-    $fact : Variable(((ph < 1500 && sf > 16000) || (ph > 1500 && sf > 5500)) && xTableCurrent > 2 && yTableCurrent > 2 && spindleCurrent > 1)
+    $fact : Variable(((ph < 1500 && sf > 16000) || (ph > 1500 && sf > 8000)) && xTableCurrent > 2 && yTableCurrent > 2 && spindleCurrent > 1)
 then
     $fact.setState("Emergency Stop");
 end
@@ -14,7 +14,7 @@ end
 rule "R012"
     salience 10
 when
-    $fact : Variable(ph > 1500 && sf > 3500 && xTableCurrent > 2 && yTableCurrent > 2 && spindleCurrent > 1)
+    $fact : Variable(ph > 1500 && sf > 6500 && xTableCurrent > 2 && yTableCurrent > 2 && spindleCurrent > 1)
 then
     $fact.setState("Big Drilling Check High");
 end
@@ -38,7 +38,7 @@ end
 rule "R009"
     salience 50
 when
-    $fact : Variable((sf > 1000 || bwo > 400) && ph > 1500 && xTableCurrent > 2 && yTableCurrent > 2 && spindleCurrent > 1)
+    $fact : Variable((sf > 1000 || bwo > 500) && ph > 1500 && xTableCurrent > 2 && yTableCurrent > 2 && spindleCurrent > 1)
 then
     $fact.setState("Drilling Big Hole");
 end
@@ -70,7 +70,7 @@ end
 rule "R005"
     salience 50
 when
-    $fact : Variable((sf > 1000 || bwo > 400) && ph < 1500 && xTableCurrent > 2 && yTableCurrent > 2 && spindleCurrent > 1)
+    $fact : Variable((sf > 1000 || bwo > 500) && ph < 1500 && xTableCurrent > 2 && yTableCurrent > 2 && spindleCurrent > 1)
 then
     $fact.setState("Drilling Small");
 end
