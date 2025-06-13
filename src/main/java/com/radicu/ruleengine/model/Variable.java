@@ -6,9 +6,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Variable {
 
+    private float sfMaxThreshold2;
+    private float sfMaxThreshold1;
     private String state;
     private float ncs;
     private float ss;
+    private float bs;
     private String krpm;
     private float ph;
     private float sf;
@@ -18,10 +21,28 @@ public class Variable {
     private String spindleId;
     private float yTableCurrent;
     private float bwo;
-    private float anc;
     private float rpm;
+    private float anc;
     private String spindle;
 
+
+    @JsonProperty("sfMaxThreshold2")
+    public float getSfMaxThreshold2() {
+        return sfMaxThreshold2;
+    }
+
+    public void setSfMaxThreshold2(float sfMaxThreshold2) {
+        this.sfMaxThreshold2 = sfMaxThreshold2;
+    }
+
+    @JsonProperty("sfMaxThreshold1")
+    public float getSfMaxThreshold1() {
+        return sfMaxThreshold1;
+    }
+
+    public void setSfMaxThreshold1(float sfMaxThreshold1) {
+        this.sfMaxThreshold1 = sfMaxThreshold1;
+    }
 
     @JsonProperty("state")
     public String getState() {
@@ -48,6 +69,15 @@ public class Variable {
 
     public void setSs(float ss) {
         this.ss = ss;
+    }
+
+    @JsonProperty("bs")
+    public float getBs() {
+        return bs;
+    }
+
+    public void setBs(float bs) {
+        this.bs = bs;
     }
 
     @JsonProperty("krpm")
@@ -131,15 +161,6 @@ public class Variable {
         this.bwo = bwo;
     }
 
-    @JsonProperty("anc")
-    public float getAnc() {
-        return anc;
-    }
-
-    public void setAnc(float anc) {
-        this.anc = anc;
-    }
-
     @JsonProperty("rpm")
     public float getRpm() {
         return rpm;
@@ -147,6 +168,15 @@ public class Variable {
 
     public void setRpm(float rpm) {
         this.rpm = rpm;
+    }
+
+    @JsonProperty("anc")
+    public float getAnc() {
+        return anc;
+    }
+
+    public void setAnc(float anc) {
+        this.anc = anc;
     }
 
     @JsonProperty("spindle")

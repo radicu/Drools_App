@@ -20,7 +20,7 @@ public class UniversalRuleExtractorService {
 
     // private static final String NAMESPACE = "http://mts.com/";
 
-    private static final String RULES_PATH2 = Paths.get(System.getProperty("user.dir"), "src", "main", "resources", "rules", "converted_rules.drl").toString();
+    private static final String RULES_PATH2 = Paths.get(System.getProperty("user.dir"), "src", "main", "resources", "rules", "converted_rules2.drl").toString();
 
 
 

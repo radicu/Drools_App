@@ -5,6 +5,7 @@ import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.springframework.stereotype.Service;
@@ -21,7 +22,6 @@ public class KGModelGenerator {
 
     private static final String MODEL_OUTPUT_DIRECTORY = Paths.get(System.getProperty("user.dir"), "src", "main", "java", "com", "radicu", "ruleengine", "model").toString();
 
-
     private static final String PREFIXES =
         "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
         "PREFIX owl: <http://www.w3.org/2002/07/owl#>\n" +
@@ -31,13 +31,12 @@ public class KGModelGenerator {
         "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
         "PREFIX owl: <http://www.w3.org/2002/07/owl#>\n" +
         "PREFIX mts: <http://mts.com/>\n" +
-        "SELECT ?var ?name ?type WHERE {\n" +
+        "SELECT ?var ?name ?type ?constant WHERE {\n" +
         "    ?var rdf:type owl:NamedIndividual , mts:Variable .\n" +
         "    OPTIONAL { ?var mts:name ?name . }\n" +
         "    OPTIONAL { ?var mts:type ?type . }\n" +
+        "    OPTIONAL { ?var <http://www.co-ode.org/ontologies/ont.owl#constantValue> ?constant . }\n" +
         "}";
-
-
 
     public void generateModelFromKG(String owlFilePath) throws IOException, TemplateException {
         // 1. Load KG Model
@@ -69,9 +68,14 @@ public class KGModelGenerator {
                 Map<String, String> field = new HashMap<>();
                 field.put("name", varName);
                 field.put("type", javaType);
+
+                // Check constant value
+                if (sol.contains("constant")) {
+                    field.put("constant", sol.getLiteral("constant").getString());
+                }
+
                 fields.add(field);
             }
-
 
             if (fields.isEmpty()) {
                 throw new IllegalStateException("No variables found in the KG!");
@@ -88,14 +92,13 @@ public class KGModelGenerator {
             cfg.setClassLoaderForTemplateLoading(this.getClass().getClassLoader(), "/templates");
             cfg.setDefaultEncoding("UTF-8");
 
-
             // 5. Load Template
             Template template = cfg.getTemplate("model.ftl");
 
             // 6. Generate Java File
             File outputDir = new File(MODEL_OUTPUT_DIRECTORY);
             if (!outputDir.exists()) {
-                outputDir.mkdirs(); // create the directory if not exists
+                outputDir.mkdirs();
             }
 
             String outputFilePath = Paths.get(MODEL_OUTPUT_DIRECTORY, "Variable.java").toString();
@@ -118,7 +121,7 @@ public class KGModelGenerator {
 
     private String mapLiteralToJavaType(String typeLiteral) {
         if (typeLiteral == null) {
-            return "String"; // default
+            return "String";
         }
         switch (typeLiteral.toLowerCase()) {
             case "string": return "String";
@@ -127,11 +130,11 @@ public class KGModelGenerator {
             case "float": return "float";
             case "double": return "double";
             case "boolean": return "boolean";
-            case "decimal": return "java.math.BigDecimal"; // Keep object for precision
+            case "decimal": return "java.math.BigDecimal";
             case "datetime": return "java.time.LocalDateTime";
             case "date": return "java.time.LocalDate";
-            default: return "String"; // fallback
+            default: return "String";
         }
     }
-
 }
+
