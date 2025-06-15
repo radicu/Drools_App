@@ -50,10 +50,18 @@ then
     $fact.setState("Bits False Alarm Remove");
 end
 
+rule "R015"
+    salience 1
+when
+    $fact : Variable(bwo > 1000 && sf >  6000 && spindleCurrent > 1 && ap1 < 300)
+then
+    $fact.setState("Bits Alarm Predict");
+end
+
 rule "R006"
     salience 50
 when
-    $fact : Variable(((sf < 1000 || bwo < 400) && ph < 1000) || spindleCurrent < 1)
+    $fact : Variable((sf < 1000 || bwo < 400) || spindleCurrent < 1)
 then
     $fact.setState("Spindle idle");
 end
